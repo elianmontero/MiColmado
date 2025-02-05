@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'thebe/elian',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '0394f0db1414799552442afd401b33368e6ae430',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -47,9 +47,9 @@
             'dev_requirement' => false,
         ),
         'thebe/elian' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '0394f0db1414799552442afd401b33368e6ae430',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Mi Tienda{% endblock %}</title>
   <!-- Enlace al archivo CSS -->
-  <link rel="stylesheet" href="{{ asset('../public/assets/css/style.css') }}">
+  <link rel="stylesheet" href="{{ css_url }}">
 </head>
 <body>
   <div class="container">
     <header>
       <nav class="navbar">
         <div class="logo">
-          <a href="/">Mi Sitio Web</a>
+          <a href="#">Mi Colmado</a>
         </div>
         <ul class="menu">
-          <li><a href="/">Inicio</a></li>
+          <li><a href="#">Inicio</a></li>
           <li><a href="#">Mis pedidos</a></li>
           <li><a href="#">Mis colmados</a></li>
           <li><a href="#">Sobre nosotros</a></li>
         </ul>
-        
+
         <!-- Formulario de búsqueda -->
         <div class="search-container">
           <form action="/buscar" method="GET">
@@ -30,11 +30,15 @@
         </div>
       </nav>
     </header>
-  
+
+    <main>
+    {% block sesion %}{% endblock %}
+    </main>
+
     <main>
       {% block content %}{% endblock %}
     </main>
-  
+
     <footer>
       <p>&copy; 2025 - Mi Colmado</p>
     </footer>
