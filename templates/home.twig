@@ -1,0 +1,15 @@
+{% extends "layout.twig" %}
+
+{% block title %}Inicio - Mi Tienda{% endblock %}
+
+{% block content %}
+<div class="product-section">
+    {% for product in products %}
+    <div class="product-card">
+        <img src="{{ product.image }}" alt="{{ product.name }}" alt="{{ product.name }}">
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.price }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

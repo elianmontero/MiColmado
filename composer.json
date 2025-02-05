@@ -1,0 +1,17 @@
+{
+    "name": "thebe/elian",
+    "autoload": {
+        "psr-4": {
+            "Thebe\\Elian\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "elianmontero",
+            "email": "thebeylonrelax@gmail.com"
+        }
+    ],
+    "require": {
+        "twig/twig": "^3.19"
+    }
+}
