@@ -37,20 +37,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro</title>
+    <link rel="stylesheet" href="../public/assets/css/style-forms.css">
 </head>
 <body>
-    <h2>Registro de Usuario</h2>
-    <form action="registro.php" method="POST">
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required><br>
+    <div class="form-container">
+        <h2>Registra tu cuenta</h2>
+        <form action="registro.php" method="POST">
 
-        <label>Email:</label>
-        <input type="email" name="email" required><br>
+            <input placeholder="Nombre" type="text" name="nombre" required><br>
 
-        <label>Contraseña:</label>
-        <input type="password" name="password" required><br>
+            <input placeholder="Correo electronico" type="email" name="email" required><br>
 
-        <button type="submit">Registrarse</button>
-    </form>
+            <input placeholder="Contraseña" type="password" name="password" required><br>
+
+            <input placeholder="Dirección" type="text" name="direccion">
+            <br>
+            <button type="submit">Registrarse</button>
+        </form>
+    </div>
 </body>
 </html>

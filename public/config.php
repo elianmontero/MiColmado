@@ -1,4 +1,5 @@
 <?php
+/* 
 $host = "localhost"; // Servidor (localhost en XAMPP)
 $usuario = "root";   // Usuario por defecto en XAMPP
 $password = "";      // Sin contraseña por defecto en XAMPP
@@ -11,5 +12,5 @@ $conn = new mysqli($host, $usuario, $password, $base_datos);
 if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
-
+ */
 ?>

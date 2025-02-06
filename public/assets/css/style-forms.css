@@ -1,0 +1,63 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+
+.form-container {
+    width: 400px;
+    height: fit-content;
+    padding: 20px;
+    margin: 0 auto;
+    margin-top: 50px;
+    position: relative;
+}
+
+.form-container h2 {
+    margin: 7px;
+}
+
+.form-container input {
+    padding: 5px;
+    margin: 7px;
+    width: 100%;
+    border: 1px solid #000;
+    border-radius: 15px;
+}
+
+.form-container button {
+    padding: 5px;
+    margin: 7px;
+    width: 100%;
+    text-align: center;
+    background-color: #38b63e;
+    color: #fff;
+    border-style: none;
+}
+
+html {
+    background: url('/public/assets/img/didi.jpg') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Filtro verde y opacidad en el fondo */
+  html::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 255, 0, 0.4); /* Filtro verde con transparencia */
+    z-index: -1; /* Para que el filtro quede detrás del formulario */
+  }
