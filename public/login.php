@@ -42,21 +42,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>Registro</title>
+    <link rel="stylesheet" href="../public/assets/css/style-forms.css">
 </head>
 <body>
-    <h2>Inicio de Sesión</h2>
+    <div class="form-container">
+        <h2>Hola de nuevo 👋, completa para acceder a tu cuenta</h2>
+        <br>
+        <form action="registro.php" method="POST">
 
-    <?php if (isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
+            <input placeholder="Correo electronico" type="email" name="email" required><br>
+            <input placeholder="Contraseña" type="password" name="password" required>
+            <button id="registrarse" type="submit"><a href="index.php">Iniciar sesión</a></button>
+        </form>
 
-    <form action="login.php" method="POST">
-        <label>Email:</label>
-        <input type="email" name="email" required><br>
-
-        <label>Contraseña:</label>
-        <input type="password" name="password" required><br>
-
-        <button type="submit">Iniciar Sesión</button>
-    </form>
+        <p id="ini-sesion">¿Eres nuevo por aqui? <a href="registro.php">Haz clic aquí</a></p>
+    </div>
 </body>
 </html>

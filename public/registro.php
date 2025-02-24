@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="form-container">
-        <h2>Registra tu cuenta</h2>
+        <h2>Hola 👋, ¿eres nuevo por aqui?</h2>
         <form action="registro.php" method="POST">
 
             <input placeholder="Nombre completo" type="text" name="nombre" required><br>
@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input placeholder="Dirección" type="text" name="direccion">
             <input placeholder="Número de telefono" type="text" name="telefono" required>
             <br>
-            <button id="registrarse" type="submit">Hola </button>
+            <button id="registrarse" type="submit"><a href="index.php">Registrarse</a></button>
         </form>
         <button class="google-login">
             <img src="./assets/img/google_icon.ico" alt="Google" class="google-icon">

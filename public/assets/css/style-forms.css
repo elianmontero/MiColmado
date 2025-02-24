@@ -56,6 +56,11 @@ html, body {
     background-color: #2e8b2e;
 }
 
+#registrarse a {
+    color: #fff;
+    text-decoration: none;
+}
+
 .google-login {
     background-color: transparent;
     color: #000;
