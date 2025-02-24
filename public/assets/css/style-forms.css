@@ -9,38 +9,83 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-  }
-
+}
 
 .form-container {
     width: 400px;
-    height: fit-content;
     padding: 20px;
     margin: 0 auto;
-    margin-top: 50px;
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -70%);
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
 }
 
 .form-container h2 {
     margin: 7px;
+    text-align: center;
+    color: #333;
 }
 
 .form-container input {
-    padding: 5px;
-    margin: 7px;
+    padding: 10px;
+    margin: 10px 0;
     width: 100%;
-    border: 1px solid #000;
-    border-radius: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
-.form-container button {
-    padding: 5px;
-    margin: 7px;
+#registrarse {
+    padding: 10px;
+    margin: 10px 0;
     width: 100%;
     text-align: center;
     background-color: #38b63e;
     color: #fff;
-    border-style: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+}
+
+#registrarse:hover {
+    background-color: #2e8b2e;
+}
+
+.google-login {
+    background-color: transparent;
+    color: #000;
+    padding: 10px;
+    width: 100%;
+    text-align: center;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.google-login .google-icon {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+}
+
+#ini-sesion {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 13px;
+}
+
+a {
+    color: #38b63e;
+    text-decoration: none;
 }
 
 html {
@@ -48,10 +93,10 @@ html {
     background-size: cover;
     position: relative;
     overflow: hidden;
-  }
+}
 
-  /* Filtro verde y opacidad en el fondo */
-  html::after {
+/* Filtro verde y opacidad en el fondo */
+html::after {
     content: "";
     position: absolute;
     top: 0;
@@ -60,4 +105,4 @@ html {
     height: 100%;
     background-color: rgba(0, 255, 0, 0.4); /* Filtro verde con transparencia */
     z-index: -1; /* Para que el filtro quede detrás del formulario */
-  }
+}

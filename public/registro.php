@@ -44,16 +44,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2>Registra tu cuenta</h2>
         <form action="registro.php" method="POST">
 
-            <input placeholder="Nombre" type="text" name="nombre" required><br>
+            <input placeholder="Nombre completo" type="text" name="nombre" required><br>
 
             <input placeholder="Correo electronico" type="email" name="email" required><br>
 
             <input placeholder="Contraseña" type="password" name="password" required><br>
 
             <input placeholder="Dirección" type="text" name="direccion">
+            <input placeholder="Número de telefono" type="text" name="telefono" required>
             <br>
-            <button type="submit">Registrarse</button>
+            <button id="registrarse" type="submit">Hola </button>
         </form>
+        <button class="google-login">
+            <img src="./assets/img/google_icon.ico" alt="Google" class="google-icon">
+            Iniciar Sesión con Google
+        </button>
+        <p id="ini-sesion">¿No eres nuevo por aqui? <a href="login.php">Haz clic aquí</a></p>
     </div>
 </body>
 </html>
