@@ -5,9 +5,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = $_POST['nombre'];
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Cifrado de contraseña
+    $direccion = $_POST['direccion'];
+    $telefono = $_POST['telefono'];
+    $tipo_usuario = $_POST['tipo_usuario'];
 
     // Verificar si el email ya está registrado
-    $check_email = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
+    $check_email = $conn->prepare("SELECT id FROM cliente WHERE email = ?");
     $check_email->bind_param("s", $email);
     $check_email->execute();
     $check_email->store_result();
@@ -16,8 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "El correo ya está registrado.";
     } else {
         // Insertar el usuario en la base de datos
-        $stmt = $conn->prepare("INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $nombre, $email, $password);
+        $stmt = $conn->prepare("INSERT INTO usuario (nombre_completo, email, contraseña, direccion, telefono, tipo_usuario, cedula) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssss", $nombre, $email, $password, $direccion, $telefono, $tipo_usuario);
 
         if ($stmt->execute()) {
             echo "Registro exitoso. <a href='login.php'>Iniciar sesión</a>";
@@ -37,11 +40,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro</title>
-    <link rel="stylesheet" href="../public/assets/css/style-forms.css">
+    <link rel="stylesheet" href="../public/assets/css/style-form-proveedor.css">
 </head>
 <body>
     <div class="form-container">
-        <h2>Hola 👋, ¿eres nuevo por aqui?</h2>
+        <h2>Hola 👋, Gracias por trabajar con nosotros, ¿eres nuevo por aqui?</h2>
         <form action="registro.php" method="POST">
 
             <input placeholder="Nombre completo" type="text" name="nombre" required><br>
@@ -52,6 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <input placeholder="Dirección" type="text" name="direccion">
             <input placeholder="Número de telefono" type="text" name="telefono" required>
+            <input placeholder="Cedula" type="number" name="cedula" required>
 
             <select name="tipo_usuario" required>
                 <option id="input-option" value="" disabled selected>Selecciona tu tipo de usuario</option>
@@ -60,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </select>
             <br>
 
-            <button id="registrarse" type="submit"><a href="index.php">Registrarse</a></button>
+            <button id="registrarse" type="submit">Registrarse</button>
         </form>
         <button class="google-login">
             <img src="./assets/img/google_icon.ico" alt="Google" class="google-icon">
