@@ -38,6 +38,18 @@ html, body {
     border-radius: 5px;
 }
 
+.form-container select {
+    padding: 10px;
+    margin: 10px 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#input-option {
+    display: none;
+}
+
 #registrarse {
     padding: 10px;
     margin: 10px 0;

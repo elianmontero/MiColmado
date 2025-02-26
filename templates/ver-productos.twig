@@ -1,0 +1,41 @@
+{% extends "layout.twig" %}
+
+{% block title %}
+Ver Productos - Mi Tienda
+{% endblock %}
+
+{% block sesion %}
+<div class="menu-seccion">
+    {% if session.usuario_nombre is defined %}
+        <p>Hola, {{ session.usuario_nombre }}</p>
+    {% else %}
+        <button><a href="login.php">Iniciar Sesión </a></button> |
+        <button><a href="registro.php">Registrarse</a></button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Lista de Productos</h2>
+
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Descripción</th>
+            <th>Stock</th>
+            <th>Imagen</th>
+        </tr>
+        {% for producto in productos %}
+            <tr>
+                <td>{{ producto.nombre }}</td>
+                <td>${{ producto.precio }}</td>
+                <td>{{ producto.descripcion }}</td>
+                <td>{{ producto.stock }}</td>
+                <td><img src="{{ producto.imagen }}" width="100"></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

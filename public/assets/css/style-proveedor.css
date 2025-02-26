@@ -1,0 +1,219 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #FFFFFF;
+  color: #333;
+  margin: 0;
+}
+
+
+.container {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+}
+
+.navbar {
+  background-color: #56A55A;
+  padding: 20px 20px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  box-shadow: 0 3px 20px rgba(0, 0, 0, 0.26);
+  margin-bottom: 20px;
+}
+
+.navbar .logo a {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.menu {
+  list-style-type: none;
+  display: flex;
+  gap: 20px;
+}
+
+.menu li {
+  display: inline;
+}
+
+.menu li a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.menu li a:hover {
+  background-color: #3A7036;
+}
+
+input:focus {
+  outline: none;
+}
+
+.menu-seccion {
+  color: #fff;
+}
+
+.menu-seccion button {
+  background-color: #fff;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  font-weight: bold;
+}
+
+.menu-seccion a {
+  text-decoration: none;
+  color: #56A55A;
+}
+
+h2 {
+  color: #56A55A;
+  text-align: center;
+  margin-bottom: 40px;
+  margin-top: 20px;
+}
+
+.form-container {
+  width: 400px;
+  height: fit-content;
+  padding: 20px;
+  margin: 0 auto;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+}
+
+.form-container h2 {
+  margin: 7px;
+  text-align: center;
+  color: #333;
+}
+
+.form-container input {
+  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.inputs input[type="text"],
+.inputs input[type="file"],
+.inputs input[type="number"],
+.inputs textarea {
+  margin-bottom: 10px;
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.inputs textarea {
+  resize: vertical;
+  height: 100px;
+}
+
+.inputs input[type="submit"] {
+  font-size: 1rem;
+  background-color: #56A55A;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.inputs input[type="submit"]:hover {
+  background-color: #3A7036;
+}
+
+#productos-btn {
+  font-size: 1rem;
+  background-color: #56A55A;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#productos-btn:hover {
+  background-color: #3A7036;
+}
+
+button {
+  background-color: #56A55A;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+/* Agregar un hover un con efecto bonito para los botones de usuario */
+
+
+
+a {
+  color: #56A55A;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #2C6B38;
+  color: white;
+  margin-top: 40px;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .menu {
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  .menu li {
+    display: block;
+    margin: 10px 0;
+  }
+
+  .search-container {
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .search-input {
+    width: 80%;
+  }
+}

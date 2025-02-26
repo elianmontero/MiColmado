@@ -10,7 +10,7 @@ $loader = new \Twig\Loader\FilesystemLoader('../templates');
 $twig = new \Twig\Environment($loader);
 
 $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
-return '/assets/' . ltrim($path, '/');
+    return '/assets/' . ltrim($path, '/');
 }));
 
 $products = [

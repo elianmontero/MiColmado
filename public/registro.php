@@ -52,7 +52,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <input placeholder="Dirección" type="text" name="direccion">
             <input placeholder="Número de telefono" type="text" name="telefono" required>
+
+            <select name="tipo_usuario" required>
+                <option id="input-option" value="" disabled selected>Selecciona tu tipo de usuario</option>
+                <option value="proveedor">Proveedor</option>
+                <option value="consumidor">Consumidor</option>
+            </select>
             <br>
+
             <button id="registrarse" type="submit"><a href="index.php">Registrarse</a></button>
         </form>
         <button class="google-login">

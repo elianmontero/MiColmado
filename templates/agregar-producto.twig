@@ -1,0 +1,55 @@
+{% extends "layout_no-search.twig" %}
+
+{% block title %}
+Agregar Producto - Mi Tienda
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ asset('/public/assets/css/style-proveedor.css') }}">
+{% endblock %}
+
+{% block sesion %}
+<div class="menu-seccion">
+    {% if session.usuario_nombre is defined %}
+        <p>Hola, {{ session.usuario_nombre }}</p>
+    {% else %}
+        <button><a href="login.php">Iniciar Sesión </a></button> |
+        <button><a href="registro.php">Registrarse</a></button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>AGREGAR PRODUCTOS</h2>
+
+    {% if mensaje %}
+        <p>{{ mensaje }}</p>
+    {% endif %}
+
+    <div class="form-container">
+        <form action="agregar-producto.php" method="POST" enctype="multipart/form-data">
+            <div class="inputs">
+                <label for="nombre">Nombre:</label>
+                <input id="nombre" type="text" name="nombre" required><br>
+    
+                <label for="precio">Precio:</label>
+                <input id="precio" type="text" name="precio" required><br>
+    
+                <label for="descripcion">Descripción:</label>
+                <textarea id="descripcion" name="descripcion"></textarea><br>
+    
+                <label for="stock">Stock:</label>
+                <input id="stock" type="number" name="stock" required><br>
+    
+                <label for="imagen">Imagen:</label>
+                <input id="imagen" type="file" name="imagen" required><br><br>
+    
+                <input type="submit" value="Agregar Producto">
+                <a id="productos" href="ver-productos.php">Ver productos</a>
+            </div>
+        </form>
+        
+    </div>
+</div>
+{% endblock %}
