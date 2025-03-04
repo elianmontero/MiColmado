@@ -7,8 +7,6 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #FFFFFF;
-  color: #333;
-  margin: 0;
 }
 
 .container {
@@ -19,7 +17,7 @@ body {
 
 .navbar {
   background-color: #56A55A;
-  padding: 15px 20px;
+  padding: 23px 20px;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
@@ -32,6 +30,19 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
   text-decoration: none;
+}
+
+#nombre-emp {
+  display: flex;
+  align-items: center;
+  margin-top: -55px;
+  margin-left: 90px;
+}
+
+.logo img {
+  width: 90px;
+  margin-top: -33px;
+
 }
 
 
@@ -142,6 +153,48 @@ input:focus {
   font-size: 1em;
 }
 
+
+
+
+
+.container-proveedor {
+  background-color: #56A55A;
+  width: 25%;
+  margin: 50px auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.container-proveedor h2 {
+  color: #fff;
+  margin: 10px;
+}
+
+.container-proveedor a, ul {
+  text-decoration: none;
+  list-style: none;
+}
+
+#btn-prod {
+  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+  text-align: center;
+  background-color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+}
+
+#btn-prod a {
+  color: #000;
+}
+
+#btn-prod:hover {
+  background-color: #e6e1e1;
+}
 
 
 

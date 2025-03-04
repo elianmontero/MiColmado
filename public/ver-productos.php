@@ -20,6 +20,7 @@ while ($fila = $resultado->fetch_assoc()) {
 
 echo $twig->render('ver-productos.twig', [
     'productos' => $productos,
-    'css_url' => '../public/assets/css/style.css'
+    'css_url' => '../public/assets/css/style-proveedor.css',
+    'session' => $_SESSION
 ]);
 ?>

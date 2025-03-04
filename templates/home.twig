@@ -8,9 +8,12 @@ Inicio - Mi Tienda
 <div class="menu-seccion">
     {% if session.usuario_nombre is defined %}
         <p>Hola, {{ session.usuario_nombre }}</p>
+        <form action="logout.php" method="POST" style="display:inline;">
+            <button type="submit">Cerrar Sesión</button>
+        </form>
     {% else %}
         <button><a href="login.php">Iniciar Sesión </a></button> |
-        <button><a href="registro.php">Registrarse</a></button>
+        <button><a href="registro-consumidor.php">Registrarse</a></button>
     {% endif %}
 </div>
 {% endblock %}

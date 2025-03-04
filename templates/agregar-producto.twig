@@ -1,4 +1,4 @@
-{% extends "layout_no-search.twig" %}
+{% extends "layout_proveedor.twig" %}
 
 {% block title %}
 Agregar Producto - Mi Tienda
@@ -14,7 +14,7 @@ Agregar Producto - Mi Tienda
         <p>Hola, {{ session.usuario_nombre }}</p>
     {% else %}
         <button><a href="login.php">Iniciar Sesión </a></button> |
-        <button><a href="registro.php">Registrarse</a></button>
+        <button><a href="registro-proveedor.php">Registrarse</a></button>
     {% endif %}
 </div>
 {% endblock %}
@@ -24,23 +24,26 @@ Agregar Producto - Mi Tienda
     <h2>AGREGAR PRODUCTOS</h2>
 
     {% if mensaje %}
+    <div id="mensaje-popup" class="popup {{ mensaje_tipo }}">
         <p>{{ mensaje }}</p>
+        <img src="../public/assets/img/success.png" alt="Success" class="popup-icon">
+    </div>
     {% endif %}
 
     <div class="form-container">
         <form action="agregar-producto.php" method="POST" enctype="multipart/form-data">
             <div class="inputs">
                 <label for="nombre">Nombre:</label>
-                <input id="nombre" type="text" name="nombre" required><br>
+                <input id="nombre" type="text" name="nombre" placeholder="Nombre del producto" required><br>
     
                 <label for="precio">Precio:</label>
-                <input id="precio" type="text" name="precio" required><br>
+                <input id="precio" type="text" name="precio" placeholder="Precio" required><br>
     
                 <label for="descripcion">Descripción:</label>
-                <textarea id="descripcion" name="descripcion"></textarea><br>
+                <textarea id="descripcion" name="descripcion" placeholder="Descripción"></textarea><br>
     
                 <label for="stock">Stock:</label>
-                <input id="stock" type="number" name="stock" required><br>
+                <input id="stock" type="number" name="stock" placeholder="Stock" required><br>
     
                 <label for="imagen">Imagen:</label>
                 <input id="imagen" type="file" name="imagen" required><br><br>
@@ -52,4 +55,14 @@ Agregar Producto - Mi Tienda
         
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('mensaje-popup')) {
+            setTimeout(function() {
+                document.getElementById('mensaje-popup').style.display = 'none';
+            }, 3000);
+        }
+    });
+</script>
 {% endblock %}
