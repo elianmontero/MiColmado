@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Mi Tienda{% endblock %}</title>
-  <!-- Enlace al archivo CSS -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/public/assets/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/public/assets/img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/public/assets/img/favicon-16x16.png">
+  <link rel="manifest" href="/public/assets/img/site.webmanifest">
   <link rel="stylesheet" href="{{ css_url }}">
 </head>
 <body>
@@ -12,12 +15,12 @@
     <header>
       <nav class="navbar">
         <div class="logo">
-          <a href="#">Mi Colmado</a>
+          <a href="inicio-proveedor.php"><img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado"><span id="nombre-emp">MI COLMADO</span></a>
         </div>
         <ul class="menu">
-          <li><a href="#">Inicio</a></li>
-          <li><a href="#">Mis pedidos</a></li>
-          <li><a href="#">Mis colmados</a></li>
+          <li><a href="inicio-proveedor.php">Inicio</a></li>
+          <li><a href="agregar-producto.php">Agregar productos</a></li>
+          <li><a href="ver-productos.php">Ver productos</a></li>
           <li><a href="#">Sobre nosotros</a></li>
         </ul>
           <section>

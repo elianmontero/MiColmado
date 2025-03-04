@@ -1,4 +1,4 @@
-{% extends "layout_no-search.twig" %}
+{% extends "layout_proveedor.twig" %}
 
 {% block title %}
 Agregar Producto - Mi Tienda
@@ -14,7 +14,7 @@ Agregar Producto - Mi Tienda
         <p>Hola, {{ session.usuario_nombre }}</p>
     {% else %}
         <button><a href="login.php">Iniciar Sesión </a></button> |
-        <button><a href="registro.php">Registrarse</a></button>
+        <button><a href="registro-proveedor.php">Registrarse</a></button>
     {% endif %}
 </div>
 {% endblock %}

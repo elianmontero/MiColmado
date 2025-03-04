@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $precio = $_POST["precio"];
     $descripcion = $_POST["descripcion"];
     $stock = $_POST["stock"];
-    $directorio = "../public/assets/imagenes/";
+    $directorio = "../public/assets/imagenes-productos/";
 
     if (!is_dir($directorio)) {
         mkdir($directorio, 0777, true);
@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $archivo = $directorio . basename($_FILES["imagen"]["name"]);
     $tipoArchivo = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
-    $extensionesPermitidas = array("jpg", "jpeg", "png", "gif, webp, svg");
+    $extensionesPermitidas = array("jpg", "jpeg", "png", "webp");
 
     if (in_array($tipoArchivo, $extensionesPermitidas)) {
         if (move_uploaded_file($_FILES["imagen"]["tmp_name"], $archivo)) {

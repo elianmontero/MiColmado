@@ -1,4 +1,4 @@
-{% extends "layout.twig" %}
+{% extends "layout_proveedor.twig" %}
 
 {% block title %}
 Inicio Proveedor - Mi Tienda
@@ -10,17 +10,17 @@ Inicio Proveedor - Mi Tienda
         <p>Hola, {{ session.usuario_nombre }}</p>
     {% else %}
         <button><a href="login.php">Iniciar Sesión </a></button> |
-        <button><a href="registro.php">Registrarse</a></button>
+        <button><a href="registro-proveedor.php">Registrarse</a></button>
     {% endif %}
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Bienvenido, Proveedor</h2>
-    <ul>
-        <li><a href="agregar-producto.php">Agregar Producto</a></li>
-        <li><a href="ver-productos.php">Ver Productos</a></li>
-    </ul>
-</div>
+<h2>Bienvenido, Proveedor</h2>
+
+    <div class="container-btn">
+        <button id="productos-btn" onclick="location.href='agregar-producto.php'">Agregar Producto</button>
+
+        <button id="productos-btn" onclick="location.href='ver-productos.php'">Ver Productos</button>
+    </div>
 {% endblock %}

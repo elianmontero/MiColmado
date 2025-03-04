@@ -1,0 +1,39 @@
+{% extends "layout_proveedor.twig" %}
+
+{% block title %}
+Modificar Producto - Mi Tienda
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Modificar Producto</h2>
+
+    {% if mensaje %}
+        <p>{{ mensaje }}</p>
+    {% endif %}
+
+    <div class="form-container">
+        <form action="modificar-producto.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="{{ producto.id }}">
+            <div class="inputs">
+                <label for="nombre">Nombre:</label>
+                <input id="nombre" type="text" name="nombre" value="{{ producto.nombre }}" required><br>
+    
+                <label for="precio">Precio:</label>
+                <input id="precio" type="text" name="precio" value="{{ producto.precio }}" required><br>
+    
+                <label for="descripcion">Descripción:</label>
+                <textarea id="descripcion" name="descripcion">{{ producto.descripcion }}</textarea><br>
+    
+                <label for="stock">Stock:</label>
+                <input id="stock" type="number" name="stock" value="{{ producto.stock }}" required><br>
+    
+                <label for="imagen">Imagen:</label>
+                <input id="imagen" type="file" name="imagen"><br><br>
+    
+                <input type="submit" value="Modificar Producto">
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

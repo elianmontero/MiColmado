@@ -11,7 +11,6 @@ body {
   margin: 0;
 }
 
-
 .container {
   display: grid;
   min-height: 100vh;
@@ -20,13 +19,28 @@ body {
 
 .navbar {
   background-color: #56A55A;
-  padding: 20px 20px;
   display: flex;
-  justify-content: space-evenly;
+  padding: 5px 5px;
+  justify-content: space-around; /* Cambiar a space-between para mejor distribución */
   align-items: center;
   box-shadow: 0 3px 20px rgba(0, 0, 0, 0.26);
   margin-bottom: 20px;
+  height: 100px;
 }
+
+#nombre-emp {
+  display: flex;
+  align-items: center;
+  margin-top: -55px;
+  margin-left: 90px;
+}
+
+.logo img {
+  width: 90px;
+  margin-top: -33px;
+
+}
+
 
 .navbar .logo a {
   color: white;
@@ -38,11 +52,12 @@ body {
 .menu {
   list-style-type: none;
   display: flex;
-  gap: 20px;
+  gap: 15px;
 }
 
 .menu li {
   display: inline;
+  margin-top: 7px;
 }
 
 .menu li a {
@@ -145,33 +160,96 @@ label {
   background-color: #3A7036;
 }
 
+.container-btn {
+  text-align: center;
+}
+
+.productos {
+  height: 10%;
+  text-align: center;
+  width: 75%;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  font-weight: bold;
+  margin: 20px auto;
+  margin-left: 190px;
+}
+
+.productos svg {
+  margin-right: 3px;
+  width: 16px;
+  height: 16px;
+}
+
+#acciones {
+  margin-top: 15px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#delete-btn {
+  padding: 5px;
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+  border-width: 2px;
+  border-radius: 5px;
+  border-style: solid;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Espaciado entre el icono y el texto */
+  padding: 8px 12px;
+}
+
+#delete-btn:hover {
+  background-color: #000;
+  color: #dc3545;
+}
+
+#modify-btn {
+  width: fit-content;
+  background-color: #56A55A;
+  border-color: #56A55A;
+  color: #fff;
+  border-width: 2px;
+  border-radius: 5px;
+  border-style: solid;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Espaciado entre el icono y el texto */
+  padding: 8px 12px;
+}
+
+#modify-btn:hover {
+  background-color: #3A7036;
+  border-color: #3A7036;
+}
+
 #productos-btn {
+  padding: 10px;
+  margin: 10px 0;
   font-size: 1rem;
   background-color: #56A55A;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  font-size: 14px;
 }
 
 #productos-btn:hover {
   background-color: #3A7036;
 }
-
-button {
-  background-color: #56A55A;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-/* Agregar un hover un con efecto bonito para los botones de usuario */
-
-
 
 a {
   color: #56A55A;
