@@ -31,19 +31,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $sql = "INSERT INTO PRODUCTO (id, nombre, precio, descripcion, stock, imagen) VALUES (UUID(), '$nombre', '$precio', '$descripcion', '$stock', '$archivo')";
             if ($conn->query($sql) === TRUE) {
                 $mensaje = "Producto agregado correctamente.";
+                $mensaje_tipo = "success";
             } else {
                 $mensaje = "Error al agregar el producto: " . $conn->error;
+                $mensaje_tipo = "error";
             }
         } else {
             $mensaje = "Error al subir la imagen.";
+            $mensaje_tipo = "error";
         }
     } else {
         $mensaje = "Formato de imagen no permitido.";
+        $mensaje_tipo = "error";
     }
 }
 
 echo $twig->render('agregar-producto.twig', [
     'css_url' => '../public/assets/css/style-proveedor.css',
-    'mensaje' => isset($mensaje) ? $mensaje : ''
+    'mensaje' => isset($mensaje) ? $mensaje : '',
+    'mensaje_tipo' => isset($mensaje_tipo) ? $mensaje_tipo : ''
 ]);
 ?>

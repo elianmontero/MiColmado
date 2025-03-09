@@ -2,10 +2,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
 body {
-  font-family: Arial, sans-serif;
   background-color: #FFFFFF;
   color: #333;
   margin: 0;
@@ -22,9 +28,27 @@ body {
   display: flex;
   padding: 5px 5px;
   justify-content: space-around; /* Cambiar a space-between para mejor distribución */
+  padding: 5px 5px;
+  justify-content: space-around; /* Cambiar a space-between para mejor distribución */
   align-items: center;
   box-shadow: 0 3px 20px rgba(0, 0, 0, 0.26);
   margin-bottom: 20px;
+  height: 100px;
+}
+
+#nombre-emp {
+  display: flex;
+  align-items: center;
+  margin-top: -55px;
+  margin-left: 90px;
+}
+
+.logo img {
+  width: 90px;
+  margin-top: -33px;
+
+}
+
   height: 100px;
 }
 
@@ -53,10 +77,12 @@ body {
   list-style-type: none;
   display: flex;
   gap: 15px;
+  gap: 15px;
 }
 
 .menu li {
   display: inline;
+  margin-top: 7px;
   margin-top: 7px;
 }
 
@@ -104,9 +130,12 @@ h2 {
 
 .form-container {
   width: 400px;
-  height: fit-content;
   padding: 20px;
   margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 15px;
@@ -118,12 +147,29 @@ h2 {
   color: #333;
 }
 
-.form-container input {
+.form-container input, .form-container textarea {
   padding: 10px;
   margin: 10px 0;
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.form-container button {
+  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+  text-align: center;
+  background-color: #38b63e;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.form-container button:hover {
+  background-color: #2e8b2e;
 }
 
 label {
@@ -230,7 +276,83 @@ label {
   border-color: #3A7036;
 }
 
+.container-btn {
+  text-align: center;
+}
+
+.productos {
+  height: 10%;
+  text-align: center;
+  width: 75%;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  font-weight: bold;
+  margin: 20px auto;
+  margin-left: 190px;
+}
+
+#img-producto {
+  max-width: 100px;
+}
+
+.productos svg {
+  margin-right: 3px;
+  width: 16px;
+  height: 16px;
+}
+
+#acciones {
+  margin-top: 15px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#delete-btn {
+  padding: 5px;
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+  border-width: 2px;
+  border-radius: 5px;
+  border-style: solid;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Espaciado entre el icono y el texto */
+  padding: 8px 12px;
+}
+
+#delete-btn:hover {
+  background-color: #000;
+  color: #dc3545;
+}
+
+#modify-btn {
+  width: fit-content;
+  background-color: #56A55A;
+  border-color: #56A55A;
+  color: #fff;
+  border-width: 2px;
+  border-radius: 5px;
+  border-style: solid;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Espaciado entre el icono y el texto */
+  padding: 8px 12px;
+}
+
+#modify-btn:hover {
+  background-color: #3A7036;
+  border-color: #3A7036;
+}
+
 #productos-btn {
+  padding: 10px;
+  margin: 10px 0;
   padding: 10px;
   margin: 10px 0;
   font-size: 1rem;
@@ -240,6 +362,11 @@ label {
   transition: background-color 0.3s ease;
   border: 1px solid #ccc;
   border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -260,12 +387,52 @@ a:hover {
   text-decoration: underline;
 }
 
+.mensaje {
+  margin: 0 auto;
+  justify-content: center;
+  text-align: center;
+  background-color: #fff;
+  color: #dc3545;
+}
+
 footer {
   text-align: center;
   padding: 20px;
   background-color: #2C6B38;
   color: white;
   margin-top: 40px;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  z-index: 1000;
+}
+
+.popup.success {
+  border: 2px solid #38b63e;
+}
+
+.popup.error {
+  border: 2px solid #e74c3c;
+}
+
+.popup p {
+  color: #38b63e;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.popup img.popup-icon {
+  width: 50px;
+  height: 50px;
 }
 
 @media (max-width: 768px) {
