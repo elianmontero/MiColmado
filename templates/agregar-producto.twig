@@ -25,11 +25,11 @@ Agregar Producto - Mi Tienda
 
     <div id="mensaje-popup" class="popup" style="display: none;">
         <p id="mensaje-texto"></p>
-        <img src="../public/assets/img/success.png" alt="Success" class="popup-icon">
+        <img id="mensaje-icono" src="" alt="Mensaje" class="popup-icon">
     </div>
 
     <div class="form-container">
-        <form id="agregar-producto-form" enctype="multipart/form-data">
+        <form id="agregar-producto-form" method="POST" enctype="multipart/form-data">
             <div class="inputs">
                 <label for="nombre">Nombre:</label>
                 <input id="nombre" type="text" name="nombre" placeholder="Nombre del producto" required><br>
@@ -58,41 +58,57 @@ Agregar Producto - Mi Tienda
         const form = document.getElementById('agregar-producto-form');
         const mensajePopup = document.getElementById('mensaje-popup');
         const mensajeTexto = document.getElementById('mensaje-texto');
+        const mensajeIcono = document.getElementById('mensaje-icono');
 
         form.addEventListener('submit', function(event) {
             event.preventDefault();
 
             const formData = new FormData(form);
 
+            // Validación previa simple
+            if (!formData.get('nombre').trim() || !formData.get('precio').trim() || !formData.get('stock').trim() || !formData.get('imagen').name) {
+                mostrarMensaje('Hubo un problema al enviar el formulario.', 'error');
+                return;
+            }
+
             fetch('agregar-producto.php', {
                 method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    mensajeTexto.textContent = 'Producto agregado exitosamente';
-                    mensajePopup.classList.add('success');
-                    mensajePopup.classList.remove('error');
+                    mostrarMensaje('Producto agregado correctamente.', 'success');
+                    form.reset();
                 } else {
-                    mensajeTexto.textContent = data.error;
-                    mensajePopup.classList.add('error');
-                    mensajePopup.classList.remove('success');
+                    mostrarMensaje('Ocurrió un error al procesar el formulario. Inténtalo de nuevo.', 'error');
                 }
-                mensajePopup.style.display = 'block';
-                setTimeout(() => {
-                    mensajePopup.style.display = 'none';
-                }, 3000);
             })
             .catch(error => {
-                mensajeTexto.textContent = 'Ocurrió un error al agregar el producto';
-                mensajePopup.classList.add('error');
-                mensajePopup.classList.remove('success');
+                console.error('Error:', error);
+                mostrarMensaje('Ocurrió un error en la comunicación con el servidor. Inténtalo de nuevo.', 'error');
+            });
+
+            function mostrarMensaje(mensaje, tipo) {
+                mensajeTexto.textContent = mensaje;
+                if (tipo === 'success') {
+                    mensajePopup.classList.add('success');
+                    mensajePopup.classList.remove('error');
+                    mensajeIcono.src = '/public/assets/img/succes.webp';
+                } else {
+                    mensajePopup.classList.add('error');
+                    mensajePopup.classList.remove('success');
+                    mensajeIcono.src = '/public/assets/img/denied.webp';
+                }
                 mensajePopup.style.display = 'block';
+
                 setTimeout(() => {
                     mensajePopup.style.display = 'none';
                 }, 3000);
-            });
+            }
         });
     });
 </script>

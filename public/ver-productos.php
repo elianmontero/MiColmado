@@ -11,7 +11,7 @@ $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
 }));
 
 // Obtener lista de productos
-$sql = "SELECT * FROM PRODUCTO";
+$sql = "SELECT * FROM PRODUCTO ORDER BY id ASC";
 $resultado = $conn->query($sql);
 $productos = [];
 while ($fila = $resultado->fetch_assoc()) {
