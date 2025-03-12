@@ -2,7 +2,7 @@
 $host = "localhost";
 $usuario = "root"; // Cambia esto si tienes otro usuario
 $password = "";
-$base_datos = "MiColmado";
+$base_datos = "micolmado";
 
 // Conexión a la base de datos
 $conn = new mysqli($host, $usuario, $password, $base_datos);

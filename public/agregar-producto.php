@@ -20,41 +20,50 @@ $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = $_POST["nombre"] ?? '';
     $precio = $_POST["precio"] ?? '';
-    $descripcion = $_POST["descripcion"] ?? '';
     $stock = $_POST["stock"] ?? '';
     $imagen = $_FILES["imagen"] ?? null;
 
     // Validación de los campos
-    if (empty($nombre) || empty($precio) || empty($stock) || !$imagen) {
+    if (empty($nombre) || !is_numeric($precio) || !is_numeric($stock) || !$imagen) {
         $response['success'] = false;
         $response['message'] = 'Hubo un problema al enviar el formulario.';
     } else {
+        // Definir el directorio para guardar las imágenes
         $directorio = "../public/assets/imagenes-productos/";
 
+        // Crear el directorio si no existe
         if (!is_dir($directorio)) {
             mkdir($directorio, 0777, true);
         }
 
+        // Obtener el archivo de la imagen
         $archivo = $directorio . basename($_FILES["imagen"]["name"]);
         $tipoArchivo = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
         $extensionesPermitidas = array("jpg", "jpeg", "png", "webp");
 
+        // Verificar si el archivo tiene una extensión permitida
         if (!in_array($tipoArchivo, $extensionesPermitidas)) {
             $response['success'] = false;
             $response['message'] = 'El formato de la imagen no es permitido.';
         } else {
+            // Subir el archivo al servidor
             if (move_uploaded_file($_FILES["imagen"]["tmp_name"], $archivo)) {
-                $sql = "INSERT INTO PRODUCTO (id, nombre, precio, descripcion, stock, imagen) VALUES (UUID(), ?, ?, ?, ?, ?)";
+                // Consulta SQL para insertar el producto
+                $sql = "INSERT INTO producto (nombre, precio, stock, imagen) VALUES (?, ?, ?, ?)";
                 $stmt = $conn->prepare($sql);
-                $stmt->bind_param("sssss", $nombre, $precio, $descripcion, $stock, $archivo);
+                $stmt->bind_param("ssss", $nombre, $precio, $stock, $archivo);
 
+                // Ejecutar la consulta
                 if ($stmt->execute()) {
                     $response['success'] = true;
                     $response['message'] = 'Producto agregado correctamente.';
                 } else {
                     $response['success'] = false;
-                    $response['message'] = 'Ocurrió un error al agregar el producto.';
+                    $response['message'] = 'Ocurrió un error al agregar el producto: ' . $stmt->error;
                 }
+
+                // Cerrar la consulta
+                $stmt->close();
             } else {
                 $response['success'] = false;
                 $response['message'] = 'Hubo un problema al subir la imagen.';

@@ -8,12 +8,13 @@ Modificar Producto - Mi Tienda
 <div class="container">
     <h2>Modificar Producto</h2>
 
-    {% if mensaje %}
-        <p>{{ mensaje }}</p>
-    {% endif %}
+    <div id="mensaje-popup" class="popup" style="display: none;">
+        <p id="mensaje-texto"></p>
+        <img id="mensaje-icono" src="" alt="Mensaje" class="popup-icon">
+    </div>
 
     <div class="form-container">
-        <form action="modificar-producto.php" method="POST" enctype="multipart/form-data">
+        <form id="modificar-producto-form" action="modificar-producto.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="id" value="{{ producto.id }}">
             <div class="inputs">
                 <label for="nombre">Nombre:</label>
@@ -21,9 +22,6 @@ Modificar Producto - Mi Tienda
     
                 <label for="precio">Precio:</label>
                 <input id="precio" type="text" name="precio" value="{{ producto.precio }}" required><br>
-    
-                <label for="descripcion">Descripción:</label>
-                <textarea id="descripcion" name="descripcion">{{ producto.descripcion }}</textarea><br>
     
                 <label for="stock">Stock:</label>
                 <input id="stock" type="number" name="stock" value="{{ producto.stock }}" required><br>
@@ -36,4 +34,58 @@ Modificar Producto - Mi Tienda
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('modificar-producto-form');
+        const mensajePopup = document.getElementById('mensaje-popup');
+        const mensajeTexto = document.getElementById('mensaje-texto');
+        const mensajeIcono = document.getElementById('mensaje-icono');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            fetch('modificar-producto.php', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarMensaje('Producto modificado correctamente.', 'success');
+                    form.reset();
+                } else {
+                    mostrarMensaje('Ocurrió un error al procesar el formulario. Inténtalo de nuevo.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                mostrarMensaje('Ocurrió un error en la comunicación con el servidor. Inténtalo de nuevo.', 'error');
+            });
+
+            function mostrarMensaje(mensaje, tipo) {
+                mensajeTexto.textContent = mensaje;
+                if (tipo === 'success') {
+                    mensajePopup.classList.add('success');
+                    mensajePopup.classList.remove('error');
+                    mensajeIcono.src = '/public/assets/img/succes.webp';
+                } else {
+                    mensajePopup.classList.add('error');
+                    mensajePopup.classList.remove('success');
+                    mensajeIcono.src = '/public/assets/img/denied.webp';
+                }
+                mensajePopup.style.display = 'block';
+
+                setTimeout(() => {
+                    mensajePopup.style.display = 'none';
+                }, 3000);
+            }
+        });
+    });
+</script>
 {% endblock %}
