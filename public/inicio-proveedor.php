@@ -22,6 +22,7 @@ echo $twig->render('inicio-proveedor.twig', [
     'productos' => $productos,
     'css_url' => '../public/assets/css/style-proveedor.css',
     'session' => $_SESSION,
-    'mensaje' => isset($mensaje) ? $mensaje : ''
+    'mensaje' => isset($mensaje) ? $mensaje : '',
+    'logout_url' => 'logout.php'
 ]);
 ?>

@@ -1,16 +1,13 @@
-{% extends "layout.twig" %}
+{% extends "layout_proveedor.twig" %}
 
 {% block title %}
-Inicio - Mi Tienda
+Ver Productos - Mi Tienda
 {% endblock %}
 
 {% block sesion %}
 <div class="menu-seccion">
     {% if session.usuario_nombre is defined %}
         <p>Hola, {{ session.usuario_nombre }}</p>
-        <form action="logout.php" method="POST" style="display:inline;">
-            <button type="submit">Cerrar Sesión</button>
-        </form>
     {% else %}
         <button><a href="login.php">Iniciar Sesión </a></button> |
         <button><a href="registro-consumidor.php">Registrarse</a></button>
@@ -19,13 +16,35 @@ Inicio - Mi Tienda
 {% endblock %}
 
 {% block content %}
-<div class="product-section">
-    {% for product in products %}
-    <div class="product-card">
-        <img src="{{ product.image }}" alt="{{ product.name }}">
-        <h3>{{ product.name }}</h3>
-        <p>{{ product.price }}</p>
-    </div>
-    {% endfor %}
+<div class="container">
+    <h2>MI COLMADO</h2>
+
+    <table class="tg"><thead>
+        <tr>
+            <th class="tg-0lax">Nombre</th>
+            <th class="tg-0lax">Precio</th>
+            <th class="tg-0lax">Stock</th>
+            <th class="tg-0lax">Imagen</th>
+            <th class="tg-0lax">Acciones</th>
+        </tr>
+    </thead>
+        
+        {% for producto in productos %}
+            <tr>
+                <td class="tg-0lax">{{ producto.nombre }}</td>
+                <td class="tg-0lax">${{ producto.precio }}</td>
+                <td class="tg-0lax">{{ producto.stock }}</td>
+                <td class="tg-0lax"><img id="img-producto" src="{{ producto.imagen }}" width="100"></td>
+                <td class="tg-0lax" id="acciones">
+                    <button id="modify-btn" onclick="location.href='modificar-producto.php?id={{ producto.id }}'">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-basket" viewBox="0 0 16 16">
+                            <path d="M5.757 1.071a.5.5 0 0 1 .172.686L3.383 6h9.234L10.07 1.757a.5.5 0 1 1 .858-.514L13.783 6H15a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1v4.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 13.5V9a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h1.217L5.07 1.243a.5.5 0 0 1 .686-.172zM2 9v4.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V9zM1 7v1h14V7zm3 3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 4 10m2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 6 10m2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 8 10m2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5m2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5"/>
+                          </svg>
+                        PEDIR
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
 </div>
 {% endblock %}

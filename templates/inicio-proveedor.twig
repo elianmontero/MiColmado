@@ -8,8 +8,9 @@ Inicio Proveedor - Mi Tienda
 <div class="menu-seccion">
     {% if session.usuario_nombre is defined %}
         <p>Hola, {{ session.usuario_nombre }}</p>
+        <button><a href="logout.php">Cerrar Sesión</a></button>
     {% else %}
-        <button><a href="login.php">Iniciar Sesión </a></button> |
+        <button><a href="login.php">Iniciar Sesión</a></button> |
         <button><a href="registro-proveedor.php">Registrarse</a></button>
     {% endif %}
 </div>
