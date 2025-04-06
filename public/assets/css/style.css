@@ -197,6 +197,101 @@ input:focus {
 }
 
 
+h2 {
+  color: #56A55A;
+  text-align: center;
+  margin-top: 30px;
+  font-size: 2.5rem;
+}
+
+.tg {
+  width: 90%;
+  height: fit-content;
+  font-weight: bold;
+  margin: 50px auto;
+  border-collapse:collapse;
+  border-color:#bbb;
+  border-spacing: 0;
+}
+
+
+.tg td{
+  background-color:#f0fcf4;
+  border-color:#bbb;
+  border-style:solid;
+  border-width:1px;
+  color:#594F4F;
+  font-family:Arial, sans-serif;
+  font-size:18px;
+  overflow:hidden;
+  word-break:normal;
+}
+
+.tg th{
+  background-color:#56A55A;
+  border-color:#bbb;
+  border-style:solid;
+  border-width:1px;
+  color:#493F3F;
+  font-family:Arial, sans-serif;
+  font-size:20px;
+  font-weight:normal;
+  overflow:hidden;
+  padding:10px 5px;
+  word-break:normal;
+}
+
+.tg .tg-0lax{
+  text-align:center;
+}
+
+.tg tr th {
+  color: #fff
+}
+
+#img-producto {
+  width: 200px;
+}
+
+.tg svg {
+  margin-right: 3px;
+  width: 30px;
+  height: 30px;
+}
+
+#acciones button {
+  width: 70%;
+  justify-content: center;
+  align-items: center;
+  margin: 10px auto;
+}
+
+#modify-btn {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+  border-width: 2px;
+  border-radius: 5px;
+  border-style: solid;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+}
+
+
+#modify-btn {
+  background-color: #56A55A;
+  border-color: #56A55A;
+}
+
+#modify-btn:hover {
+  background-color: #3A7036;
+  border-color: #3A7036;
+}
+
+
 
 footer {
   text-align: center;
