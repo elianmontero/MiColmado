@@ -240,6 +240,10 @@ h2 {
   height: 30px;
 }
 
+.tg td {
+  font-size: 1.5rem;
+}
+
 
 #acciones button {
   width: 70%;
