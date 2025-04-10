@@ -1,9 +1,10 @@
 <?php
-include 'config.php';
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    require 'config.php';
+
     $nombre = $_POST['nombre'];
     $email = $_POST['email'];
+<<<<<<< HEAD
     $password = $_POST['password'];
     $direccion = $_POST['direccion'];
     $telefono = $_POST['telefono'];
@@ -58,9 +59,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $check_email->close();
+=======
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $direccion = $_POST['direccion'];
+
+    // Limpio y guardo SOLO números
+    $telefono = preg_replace('/\D/', '', $_POST['telefono']);
+    $cedula = preg_replace('/\D/', '', $_POST['cedula']);
+
+    $tipo_usuario = "proveedor";
+    $errores = [];
+
+    // Validar longitud de la cédula
+    if (strlen($cedula) !== 11) {
+        $errores['cedula'] = "La cédula debe tener 11 números.";
+    }
+
+    // Validar longitud del teléfono
+    if (strlen($telefono) !== 10) {
+        $errores['telefono'] = "El teléfono debe tener 10 números.";
+    }
+
+    if (empty($errores)) {
+        $check_email = $conn->prepare("SELECT id FROM usuario WHERE email = ?");
+        $check_email->bind_param("s", $email);
+        $check_email->execute();
+        $check_email->store_result();
+
+        if ($check_email->num_rows > 0) {
+            $errores['email'] = "El correo ya está registrado.";
+        } else {
+            $stmt_usuario = $conn->prepare("INSERT INTO usuario (nombre, email, contraseña, direccion, telefono, tipo_usuario, cedula) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt_usuario->bind_param("sssssss", $nombre, $email, $password, $direccion, $telefono, $tipo_usuario, $cedula);
+
+            if ($stmt_usuario->execute()) {
+                $usuario_id = $stmt_usuario->insert_id;
+
+                $stmt_colmado = $conn->prepare("INSERT INTO colmado (nombre, direccion, telefono, usuario_id) VALUES (?, ?, ?, ?)");
+                $stmt_colmado->bind_param("sssi", $nombre, $direccion, $telefono, $usuario_id);
+
+                if ($stmt_colmado->execute()) {
+                    echo "Registro exitoso. <a href='login.php'>Iniciar sesión</a>";
+                } else {
+                    $errores['general'] = "Error al registrar el colmado.";
+                }
+
+                $stmt_colmado->close();
+            } else {
+                $errores['general'] = "Error al registrar el usuario.";
+            }
+
+            $stmt_usuario->close();
+        }
+
+        $check_email->close();
+    }
+
+>>>>>>> 9af5c42 (Cambios nuevos)
     $conn->close();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es">
@@ -79,6 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="form-container">
+<<<<<<< HEAD
         <h2>Hola 👋, Gracias por trabajar con nosotros, ¿eres nuevo por aqui?</h2>
         <form action="registro-proveedor.php" method="POST">
 
@@ -97,15 +157,95 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <option value="proveedor">Proveedor</option>
                 <option value="consumidor">Consumidor</option>
             </select>
+=======
+        <h2>Hola 👋, Gracias por trabajar con nosotros, ¿eres nuevo por aquí?</h2>
+        <form action="registro-proveedor.php" method="POST">
+
+            <input placeholder="Nombre completo" type="text" name="nombre" value="<?php echo isset($nombre) ? $nombre : ''; ?>" required>
+            <?php if (isset($errores['nombre'])): ?>
+                <p style="color: red;"><?php echo $errores['nombre']; ?></p>
+            <?php endif; ?>
+>>>>>>> 9af5c42 (Cambios nuevos)
             <br>
 
+            <input placeholder="Correo electrónico" type="email" name="email" value="<?php echo isset($email) ? $email : ''; ?>" required>
+            <?php if (isset($errores['email'])): ?>
+                <p style="color: red;"><?php echo $errores['email']; ?></p>
+            <?php endif; ?>
+            <br>
+
+            <input placeholder="Contraseña" type="password" name="password" required>
+            <?php if (isset($errores['password'])): ?>
+                <p style="color: red;"><?php echo $errores['password']; ?></p>
+            <?php endif; ?>
+            <br>
+
+            <input placeholder="Dirección del colmado" type="text" name="direccion" value="<?php echo isset($direccion) ? $direccion : ''; ?>">
+
+            <input
+                placeholder="Número de teléfono"
+                type="text"
+                name="telefono"
+                id="telefono"
+                maxlength="10"
+                value="<?php echo isset($telefono) ? $telefono : ''; ?>"
+                required
+                pattern="^\d{10}$"
+                title="Debe contener exactamente 10 números.">
+            <?php if (isset($errores['telefono'])): ?>
+                <p style="color: red;"><?php echo $errores['telefono']; ?></p>
+            <?php endif; ?>
+            <br>
+
+            <input
+                placeholder="Cédula"
+                type="text"
+                name="cedula"
+                id="cedula"
+                maxlength="11"
+                value="<?php echo isset($cedula) ? $cedula : ''; ?>"
+                required
+                pattern="^\d{11}$"
+                title="Debe contener exactamente 11 números.">
+            <?php if (isset($errores['cedula'])): ?>
+                <p style="color: red;"><?php echo $errores['cedula']; ?></p>
+            <?php endif; ?>
+            <br>
+
+            <!-- tipo_usuario oculto -->
+            <input type="hidden" name="tipo_usuario" value="proveedor">
+
+            <br>
             <button id="registrarse" type="submit">Registrarse</button>
         </form>
-        <button class="google-login">
-            <img src="./assets/img/google_icon.ico" alt="Google" class="google-icon">
-            Iniciar Sesión con Google
-        </button>
-        <p id="ini-sesion">¿No eres nuevo por aqui? <a href="login.php">Haz clic aquí</a></p>
+
+        <?php if (isset($errores['general'])): ?>
+            <p style="color: red;"><?php echo $errores['general']; ?></p>
+        <?php endif; ?>
     </div>
+
+    <script>
+        // Formatear teléfono
+        document.getElementById('telefono').addEventListener('input', function(e) {
+            let telefono = e.target.value.replace(/\D/g, ''); // Solo números
+
+            if (telefono.length > 10) {
+                telefono = telefono.slice(0, 10);
+            }
+
+            e.target.value = telefono;
+        });
+
+        // Formatear cédula
+        document.getElementById('cedula').addEventListener('input', function(e) {
+            let cedula = e.target.value.replace(/\D/g, ''); // Solo números
+
+            if (cedula.length > 11) {
+                cedula = cedula.slice(0, 11);
+            }
+
+            e.target.value = cedula;
+        });
+    </script>
 </body>
 </html>
