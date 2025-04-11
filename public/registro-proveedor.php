@@ -4,7 +4,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $nombre = $_POST['nombre'];
     $email = $_POST['email'];
-<<<<<<< HEAD
     $password = $_POST['password'];
     $direccion = $_POST['direccion'];
     $telefono = $_POST['telefono'];
@@ -59,7 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $check_email->close();
-=======
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $direccion = $_POST['direccion'];
 
@@ -115,7 +113,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $check_email->close();
     }
 
->>>>>>> 9af5c42 (Cambios nuevos)
     $conn->close();
 }
 ?>
@@ -138,26 +135,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="form-container">
-<<<<<<< HEAD
-        <h2>Hola 👋, Gracias por trabajar con nosotros, ¿eres nuevo por aqui?</h2>
-        <form action="registro-proveedor.php" method="POST">
-
-            <input placeholder="Nombre completo" type="text" name="nombre" required><br>
-
-            <input placeholder="Correo electronico" type="email" name="email" required><br>
-
-            <input placeholder="Contraseña" type="password" name="password" required minlength="8"><br>
-
-            <input placeholder="Dirección" type="text" name="direccion">
-            <input placeholder="Número de telefono" type="text" name="telefono" required maxlength="10" pattern="\d{10}" oninput="validateLength(this, 10)">
-            <input placeholder="Cedula" type="number" name="cedula" required maxlength="11" pattern="\d{11}" oninput="validateLength(this, 11)">
-
-            <select name="tipo_usuario" required>
-                <option id="input-option" value="" disabled selected>Selecciona tu tipo de usuario</option>
-                <option value="proveedor">Proveedor</option>
-                <option value="consumidor">Consumidor</option>
-            </select>
-=======
         <h2>Hola 👋, Gracias por trabajar con nosotros, ¿eres nuevo por aquí?</h2>
         <form action="registro-proveedor.php" method="POST">
 
@@ -165,7 +142,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (isset($errores['nombre'])): ?>
                 <p style="color: red;"><?php echo $errores['nombre']; ?></p>
             <?php endif; ?>
->>>>>>> 9af5c42 (Cambios nuevos)
             <br>
 
             <input placeholder="Correo electrónico" type="email" name="email" value="<?php echo isset($email) ? $email : ''; ?>" required>
