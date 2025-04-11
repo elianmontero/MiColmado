@@ -6,7 +6,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $nombre = $_POST['nombre'];
     $email = $_POST['email'];
-<<<<<<< HEAD
     $password = $_POST['password'];
     $direccion = $_POST['direccion'];
     $telefono = $_POST['telefono'];
