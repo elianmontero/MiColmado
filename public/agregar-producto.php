@@ -14,6 +14,27 @@ $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
 
 $response = [];
 
+// Verificar si hay un usuario autenticado
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Obtener el ID del colmado asociado al usuario
+$usuario_id = $_SESSION['usuario_id'];
+$stmt = $conn->prepare("SELECT id FROM colmado WHERE id_usuario = ?");
+$stmt->bind_param("i", $usuario_id);
+$stmt->execute();
+$resultado = $stmt->get_result();
+$colmado = $resultado->fetch_assoc();
+
+if (!$colmado) {
+    header("Location: registro-proveedor.php");
+    exit();
+}
+
+$id_colmado = $colmado['id'];
+
 // Detectar si la solicitud es AJAX
 $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -49,9 +70,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Subir el archivo al servidor
             if (move_uploaded_file($_FILES["imagen"]["tmp_name"], $archivo)) {
                 // Consulta SQL para insertar el producto
-                $sql = "INSERT INTO producto (nombre, precio, stock, imagen) VALUES (?, ?, ?, ?)";
+                $sql = "INSERT INTO producto (nombre, precio, stock, imagen, id_colmado) VALUES (?, ?, ?, ?, ?)";
                 $stmt = $conn->prepare($sql);
-                $stmt->bind_param("ssss", $nombre, $precio, $stock, $archivo);
+                $stmt->bind_param("ssssi", $nombre, $precio, $stock, $archivo, $id_colmado);
 
                 // Ejecutar la consulta
                 if ($stmt->execute()) {
@@ -75,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($isAjax) {
         header('Content-Type: application/json');
         echo json_encode($response);
-        exit;
+        exit();
     }
 }
 
@@ -85,5 +106,4 @@ echo $twig->render('agregar-producto.twig', [
     'response' => $response,
     'session' => $_SESSION
 ]);
-
 ?>

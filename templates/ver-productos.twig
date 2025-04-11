@@ -1,7 +1,7 @@
 {% extends "layout_proveedor.twig" %}
 
 {% block title %}
-Ver Productos - Mi Tienda
+Ver Productos - Mi Colmado
 {% endblock %}
 
 {% block sesion %}
@@ -18,6 +18,12 @@ Ver Productos - Mi Tienda
 {% block content %}
 <div class="container">
     <h2>MI INVENTARIO</h2>
+
+    {% if mensaje %}
+        <div class="alert">
+            <p>{{ mensaje }}</p>
+        </div>
+    {% endif %}
 
     <table class="tg"><thead>
         <tr>
@@ -39,14 +45,14 @@ Ver Productos - Mi Tienda
                     <button id="modify-btn" onclick="location.href='modificar-producto.php?id={{ producto.id }}'">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                             <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5.1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
                         </svg>
                         MODIFICAR
                     </button>
                     
-                    <form action="eliminar-producto.php" method="POST" style="display:inline;">
+                    <form id="delete-form-{{ producto.id }}" style="display:inline;">
                         <input type="hidden" name="id" value="{{ producto.id }}">
-                        <button id="delete-btn" type="submit">
+                        <button id="delete-btn" type="button" onclick="confirmDelete({{ producto.id }})">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
                             </svg>
@@ -58,4 +64,50 @@ Ver Productos - Mi Tienda
         {% endfor %}
     </table>
 </div>
+<script>
+    function confirmDelete(productId) {
+        swal({
+            title: "¿Estás seguro?",
+            text: "Una vez eliminado, no podrás recuperar este producto.",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        })
+        .then((willDelete) => {
+            if (willDelete) {
+                // Realizar la solicitud AJAX para eliminar el producto
+                fetch('eliminar-producto.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${productId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Recargar la tabla de productos dinámicamente
+                        const row = document.querySelector(`#delete-form-${productId}`).closest('tr');
+                        if (row) {
+                            row.remove(); // Eliminar la fila del producto eliminado
+                        }
+                        swal("El producto ha sido eliminado.", {
+                            icon: "success",
+                        });
+                    } else {
+                        swal("Error al eliminar el producto.", {
+                            icon: "error",
+                        });
+                    }
+                })
+                .catch(error => {
+                    swal("Error al procesar la solicitud.", {
+                        icon: "error",
+                    });
+                });
+            } else {
+                swal("El producto no fue eliminado.");
+            }
+        });
+    }
+</script>
 {% endblock %}

@@ -3,6 +3,12 @@ include 'config.php';
 session_start();
 require_once '../vendor/autoload.php';
 
+// Verificar si hay una sesión activa
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
 $loader = new \Twig\Loader\FilesystemLoader('../templates');
 $twig = new \Twig\Environment($loader);
 

@@ -1,0 +1,32 @@
+td {
+    text-align: center;
+}
+
+.btn-add-user {
+    width: 180px;
+    height: 40px;
+    background-color: #1404eb;
+    border: 1px solid #1404eb;
+    border-radius: 10px;
+    color: #fff;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-add-user:hover {
+    background-color: #fff;
+    color: #1404eb;
+}
+
+.btn {
+    border-radius: 10px;
+    width: 90px;
+}
+

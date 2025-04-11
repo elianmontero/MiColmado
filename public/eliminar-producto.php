@@ -2,17 +2,34 @@
 include '../public/config.php';
 session_start();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id'])) {
-    $id = $_POST['id'];
-    $sql = "DELETE FROM PRODUCTO WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $id);
-    if ($stmt->execute()) {
-        $mensaje = "Producto eliminado correctamente.";
-    } else {
-        $mensaje = "Error al eliminar el producto: " . $conn->error;
-    }
-    header("Location: ver-productos.php");
+// Verificar si hay una sesión activa
+if (!isset($_SESSION['usuario_id'])) {
+    http_response_code(403); // Prohibido
+    echo "No tienes permiso para realizar esta acción.";
     exit();
 }
+
+// Verificar si se recibió el ID del producto
+if (isset($_POST['id'])) {
+    $producto_id = intval($_POST['id']);
+
+    // Eliminar el producto de la base de datos
+    $stmt = $conn->prepare("DELETE FROM producto WHERE id = ?");
+    $stmt->bind_param("i", $producto_id);
+
+    if ($stmt->execute()) {
+        http_response_code(200); // Éxito
+        echo "Producto eliminado correctamente.";
+    } else {
+        http_response_code(500); // Error interno del servidor
+        echo "Error al eliminar el producto.";
+    }
+
+    $stmt->close();
+} else {
+    http_response_code(400); // Solicitud incorrecta
+    echo "ID de producto no válido.";
+}
+
+$conn->close();
 ?>

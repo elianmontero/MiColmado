@@ -56,6 +56,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/assets/img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/assets/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/assets/img/favicon-16x16.png">
     <link rel="stylesheet" href="../public/assets/css/style-forms.css">
 </head>
 
@@ -63,6 +66,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="form-container">
         <h2>Hola 👋, ¿eres nuevo por aquí?</h2>
         <form action="registro-consumidor.php" method="POST">
+            <?php if (!empty($errores)): ?>
+                <p style="color: red; text-align: center;">No se enviaron todos los datos correctamente. Por favor, revisa los campos marcados.</p>
+            <?php endif; ?>
+
             <input placeholder="Nombre completo" type="text" name="nombre" value="<?php echo isset($nombre) ? $nombre : ''; ?>" required>
             <?php if (isset($errores['nombre'])): ?>
                 <p style="color: red;"><?php echo $errores['nombre']; ?></p>
@@ -96,7 +103,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php if (isset($errores['telefono'])): ?>
                 <p style="color: red;"><?php echo $errores['telefono']; ?></p>
             <?php endif; ?>
-
             <br>
 
             <!-- tipo_usuario oculto -->
