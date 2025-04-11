@@ -2,8 +2,11 @@
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     require 'config.php';
 
+    require 'config.php';
+
     $nombre = $_POST['nombre'];
     $email = $_POST['email'];
+<<<<<<< HEAD
     $password = $_POST['password'];
     $direccion = $_POST['direccion'];
     $telefono = $_POST['telefono'];
@@ -118,6 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -198,7 +202,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php if (isset($errores['general'])): ?>
             <p style="color: red;"><?php echo $errores['general']; ?></p>
         <?php endif; ?>
+
+        <?php if (isset($errores['general'])): ?>
+            <p style="color: red;"><?php echo $errores['general']; ?></p>
+        <?php endif; ?>
     </div>
+
+    <script>
+        // Formatear teléfono
+        document.getElementById('telefono').addEventListener('input', function(e) {
+            let telefono = e.target.value.replace(/\D/g, ''); // Solo números
+
+            if (telefono.length > 10) {
+                telefono = telefono.slice(0, 10);
+            }
+
+            e.target.value = telefono;
+        });
+
+        // Formatear cédula
+        document.getElementById('cedula').addEventListener('input', function(e) {
+            let cedula = e.target.value.replace(/\D/g, ''); // Solo números
+
+            if (cedula.length > 11) {
+                cedula = cedula.slice(0, 11);
+            }
+
+            e.target.value = cedula;
+        });
+    </script>
 
     <script>
         // Formatear teléfono
