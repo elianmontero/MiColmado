@@ -33,7 +33,6 @@ echo $twig->render('inicio-consumidor.twig', [
     'productos' => $productos,
     'css_url' => '../public/assets/css/style-consumidor.css',
     'session' => $_SESSION,
-    'mensaje' => isset($mensaje) ? $mensaje : '',
     'logout_url' => 'logout.php'
 ]);
 ?>
