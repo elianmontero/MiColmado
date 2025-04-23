@@ -29,10 +29,11 @@ while ($fila = $resultado->fetch_assoc()) {
 }
 $stmt->close();
 
-// Pasar la información de la sesión y los productos a la plantilla
-echo $twig->render('home.twig', [
-    'css_url' => '../public/assets/css/style.css',
+echo $twig->render('inicio-consumidor.twig', [
+    'productos' => $productos,
+    'css_url' => '../public/assets/css/style-consumidor.css',
     'session' => $_SESSION,
-    'productos' => $productos
+    'mensaje' => isset($mensaje) ? $mensaje : '',
+    'logout_url' => 'logout.php'
 ]);
 ?>

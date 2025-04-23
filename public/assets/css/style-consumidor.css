@@ -2,34 +2,36 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.container-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
+  color: #333;
 }
 
-.container {
-  display: grid;
-  min-height: 100vh;
-  grid-template-rows: auto 1fr auto;
+
+body h2 {
+  color: #56a55a;
+  text-align: center;
+  font-size: 2.5rem;
+  margin-top: 35px;
 }
 
-.navbar {
-  background-color: #56A55A;
-  padding: 23px 20px;
+.navbar-menu {
+  background-color: #56a55a;
   display: flex;
-  justify-content: space-evenly;
+  padding: 10px 5px;
+  justify-content: space-around;
   align-items: center;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.330);
-  margin-bottom: 20px;
-}
-
-.navbar .logo a {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-decoration: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.26);
+  height: 100px;
 }
 
 #nombre-emp {
@@ -42,18 +44,24 @@ body {
 .logo img {
   width: 90px;
   margin-top: -33px;
-
 }
 
+.navbar-menu .logo a {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
 
 .menu {
   list-style-type: none;
   display: flex;
-  gap: 20px;
+  gap: 15px;
 }
 
 .menu li {
   display: inline;
+  margin-top: 20px;
 }
 
 .menu li a {
@@ -65,7 +73,71 @@ body {
 }
 
 .menu li a:hover {
-  background-color: #3A7036;
+  background-color: #3a7036;
+}
+
+input:focus {
+  outline: none;
+}
+
+.menu-seccion {
+  color: #fff;
+  text-align: center;
+}
+
+.menu-seccion p {
+  margin-bottom: 5px;
+}
+
+.menu-seccion button {
+  background-color: #fff;
+  color: #56a55a;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  font-weight: bold;
+  border-radius: 8px;
+}
+
+.menu-seccion button:focus {
+  outline: none;
+}
+
+
+.menu-seccion button:hover {
+  background-color: #f0f0f0;
+  color: #56a55a;
+}
+
+.carousel-item img {
+  height: 680px;
+  width: 100%;
+  object-fit: cover;
+  position: relative;
+}
+
+.slider-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Filtro negro con opacidad */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Texto centrado encima del slider */
+.slider-overlay h1 {
+  font-size: large;
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 0;
+  text-transform: uppercase;
 }
 
 
@@ -298,7 +370,7 @@ footer {
   padding: 20px;
   background-color: #2C6B38;
   color: white;
-  margin-top: 40px;
+  margin-top: auto;
 }
 
 

@@ -4,62 +4,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $nombre = $_POST['nombre'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $password = $_POST['password'];
     $direccion = $_POST['direccion'];
-
-    // Limpio y guardo SOLO números
-    $telefono = preg_replace('/\D/', '', $_POST['telefono']);
-
+    $telefono = preg_replace('/\D/', '', $_POST['telefono']); // Solo números
     $tipo_usuario = "consumidor";
     $errores = [];
 
-    // Valido longitud
-    if (strlen($telefono) !== 10) {
-        $errores['telefono'] = "El teléfono debe tener 10 números.";
+    // Validaciones adicionales
+    if (strlen($password) < 8) {
+        $errores['password'] = "La contraseña debe tener al menos 8 caracteres.";
+    }
+
+    if (!preg_match("/^\d{10}$/", $telefono)) {
+        $errores['telefono'] = "El número de teléfono debe tener 10 dígitos.";
+    }
+
+    // Verificar si el email ya está registrado
+    $check_email = $conn->prepare("SELECT id FROM usuario WHERE email = ?");
+    $check_email->bind_param("s", $email);
+    $check_email->execute();
+    $check_email->store_result();
+
+    if ($check_email->num_rows > 0) {
+        $errores['email'] = "El correo ya está registrado.";
     }
 
     if (empty($errores)) {
-        $check_email = $conn->prepare("SELECT id FROM usuario WHERE email = ?");
-        $check_email->bind_param("s", $email);
-        $check_email->execute();
-        $check_email->store_result();
+        $password_hashed = password_hash($password, PASSWORD_DEFAULT);
 
-        if ($check_email->num_rows > 0) {
-            $errores['email'] = "El correo ya está registrado.";
+        $stmt = $conn->prepare("INSERT INTO usuario (nombre_completo, email, contraseña, direccion, telefono, tipo_usuario) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssss", $nombre, $email, $password_hashed, $direccion, $telefono, $tipo_usuario);
+
+        if ($stmt->execute()) {
+            // Redirigir a login.php con el correo ya introducido
+            header("Location: login.php?email=" . urlencode($email));
+            exit();
         } else {
-            $stmt = $conn->prepare("INSERT INTO usuario (nombre, email, contraseña, direccion, telefono, tipo_usuario) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssss", $nombre, $email, $password, $direccion, $telefono, $tipo_usuario);
-
-            if ($stmt->execute()) {
-                echo "Registro exitoso. <a href='login.php'>Iniciar sesión</a>";
-            } else {
-                $errores['general'] = "Error al registrar el usuario.";
-            }
-
-            $stmt->close();
+            $errores['general'] = "Error al registrarse.";
         }
 
-        $check_email->close();
+        $stmt->close();
     }
 
+    $check_email->close();
     $conn->close();
 }
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" width="device-width, initial-scale=1.0">
     <title>Registro</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/public/assets/img/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/public/assets/img/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/public/assets/img/favicon-16x16.png">
     <link rel="stylesheet" href="../public/assets/css/style-forms.css">
+    <script>
+        function validateLength(input, maxLength) {
+            if (input.value.length > maxLength) {
+                input.value = input.value.slice(0, maxLength);
+            }
+        }
+    </script>
 </head>
 
 <body>
@@ -82,6 +91,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
             <br>
 
+            <input
+                placeholder="Número de teléfono"
+                type="text"
+                name="telefono"
+                id="telefono"
+                maxlength="10"
+                value="<?php echo isset($telefono) ? $telefono : ''; ?>"
+                required
+                pattern="^\d{10}$"
+                title="Debe contener exactamente 10 números.">
+            <?php if (isset($errores['telefono'])): ?>
+                <p style="color: red;"><?php echo $errores['telefono']; ?></p>
+            <?php endif; ?>
+            <br>
+
             <input placeholder="Contraseña" type="password" name="password" required>
             <?php if (isset($errores['password'])): ?>
                 <p style="color: red;"><?php echo $errores['password']; ?></p>
@@ -90,62 +114,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <input placeholder="Dirección" type="text" name="direccion" value="<?php echo isset($direccion) ? $direccion : ''; ?>">
 
-            <input
-                placeholder="Número de teléfono"
-                type="text"
-                name="telefono"
-                id="telefono"
-                maxlength="12"
-                value="<?php echo isset($telefono) ? $telefono : ''; ?>"
-                required
-                pattern="^\d{3}-\d{3}-\d{4}$"
-                title="Formato requerido: 000-000-0000">
-            <?php if (isset($errores['telefono'])): ?>
-                <p style="color: red;"><?php echo $errores['telefono']; ?></p>
-            <?php endif; ?>
-            <br>
-
-            <!-- tipo_usuario oculto -->
             <input type="hidden" name="tipo_usuario" value="consumidor">
 
+            <br>
             <button id="registrarse" type="submit">Registrarse</button>
         </form>
 
         <?php if (isset($errores['general'])): ?>
             <p style="color: red;"><?php echo $errores['general']; ?></p>
         <?php endif; ?>
-        <button class="google-login">
-            <img src="./assets/img/google_icon.ico" alt="Google" class="google-icon">
-            Iniciar Sesión con Google
-        </button>
+
         <p id="ini-sesion">¿No eres nuevo por aquí? <a href="login.php">Haz clic aquí</a></p>
         <p id="ini-sesion">¿Quieres registrar tu colmado? <a href="registro-proveedor.php">Haz clic aquí</a></p>
     </div>
 
-
     <script>
+        // Formatear teléfono
         document.getElementById('telefono').addEventListener('input', function(e) {
-            let telefono = e.target.value.replace(/\D/g, ''); // Elimina cualquier carácter no numérico
+            let telefono = e.target.value.replace(/\D/g, ''); // Solo números
 
             if (telefono.length > 10) {
-                telefono = telefono.slice(0, 10); // Limita el número a 10 dígitos
+                telefono = telefono.slice(0, 10);
             }
 
-            // Aplica el formato 000-000-0000
-            let formatted = '';
-            if (telefono.length >= 3) {
-                formatted += telefono.slice(0, 3) + '-';
-            }
-            if (telefono.length >= 6) {
-                formatted += telefono.slice(3, 6) + '-' + telefono.slice(6);
-            } else if (telefono.length > 3) {
-                formatted += telefono.slice(3);
-            }
-
-            e.target.value = formatted; // Actualiza el valor del campo con el formato
+            e.target.value = telefono;
         });
     </script>
-
 </body>
 
 </html>

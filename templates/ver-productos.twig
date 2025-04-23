@@ -5,18 +5,19 @@ Ver Productos - Mi Colmado
 {% endblock %}
 
 {% block sesion %}
-<div class="menu-seccion">
-    {% if session.usuario_nombre is defined %}
-        <p>Hola, {{ session.usuario_nombre }}</p>
-    {% else %}
-        <button><a href="login.php">Iniciar Sesión </a></button> |
-        <button><a href="registro-proveedor.php">Registrarse</a></button>
-    {% endif %}
-</div>
+    <div class="menu-seccion">
+        {% if session.usuario_nombre is defined %}
+            <p>Hola, {{ session.usuario_nombre }}</p>
+            <button onclick="location.href='logout.php'">Cerrar Sesión</button>
+        {% else %}
+            <button onclick="location.href='login.php'">Iniciar Sesión</button>
+            <button onclick="location.href='registro-proveedor.php'">Registrarse</button>
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-main">
     <h2>MI INVENTARIO</h2>
 
     {% if mensaje %}
@@ -25,81 +26,188 @@ Ver Productos - Mi Colmado
         </div>
     {% endif %}
 
-    <table class="tg"><thead>
-        <tr>
-            <th class="tg-0lax">Nombre</th>
-            <th class="tg-0lax">Precio</th>
-            <th class="tg-0lax">Stock</th>
-            <th class="tg-0lax">Imagen</th>
-            <th class="tg-0lax">Acciones</th>
-        </tr>
-    </thead>
-        
-        {% for producto in productos %}
+    <div class="filters">
+        <div class="search-container">
+            <i class="bi bi-search"></i> <input type="text" id="search-bar" placeholder="Buscar producto..." onkeyup="filterTable()">
+        </div>
+    
+        <div class="filter-container">
+            <label for="filter-limit">Mostrar:</label>
+            <select id="filter-limit" onchange="applyFilterLimit()">
+                <option value="all">Todos</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+            </select>
+        </div>
+    </div>
+
+    <table class="tg">
+        <thead>
             <tr>
-                <td class="tg-0lax">{{ producto.nombre }}</td>
-                <td class="tg-0lax">${{ producto.precio }}</td>
-                <td class="tg-0lax">{{ producto.stock }}</td>
-                <td class="tg-0lax"><img id="img-producto" src="{{ producto.imagen }}" width="100"></td>
-                <td class="tg-0lax" id="acciones">
-                    <button id="modify-btn" onclick="location.href='modificar-producto.php?id={{ producto.id }}'">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5.1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                        </svg>
-                        MODIFICAR
-                    </button>
-                    
-                    <form id="delete-form-{{ producto.id }}" style="display:inline;">
-                        <input type="hidden" name="id" value="{{ producto.id }}">
-                        <button id="delete-btn" type="button" onclick="confirmDelete({{ producto.id }})">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                            </svg>
-                            ELIMINAR
-                        </button>
-                    </form>
-                </td>
+                <th class="tg-0lax">
+                    Nombre
+                    <span class="sort-icon" onclick="toggleSort(this, 0, 'alpha')">
+                        <i class="bi bi-sort-alpha-down"></i>
+                    </span>
+                </th>
+                <th class="tg-0lax">
+                    Precio
+                    <span class="sort-icon" onclick="toggleSort(this, 1, 'numeric')">
+                        <i class="bi bi-sort-numeric-down"></i>
+                    </span>
+                </th>
+                <th class="tg-0lax">
+                    Stock
+                    <span class="sort-icon" onclick="toggleSort(this, 2, 'numeric')">
+                        <i class="bi bi-sort-numeric-down"></i>
+                    </span>
+                </th>
+                <th class="tg-0lax">Imagen</th>
+                <th class="tg-0lax">Acciones</th>
             </tr>
-        {% endfor %}
+        </thead>
+        
+        <tbody id="product-table">
+            {% for producto in productos %}
+                <tr>
+                    <td class="tg-0lax">{{ producto.nombre }}</td>
+                    <td class="tg-0lax">${{ producto.precio }}</td>
+                    <td class="tg-0lax">{{ producto.stock }}</td>
+                    <td class="tg-0lax"><img id="img-producto" src="{{ producto.imagen }}" width="100"></td>
+                    <td class="tg-0lax" id="acciones">
+                        <button id="modify-btn" onclick="location.href='modificar-producto.php?id={{ producto.id }}'">
+                            MODIFICAR
+                        </button>
+                        
+                        <form id="delete-form-{{ producto.id }}" style="display:inline;">
+                            <input type="hidden" name="id" value="{{ producto.id }}">
+                            <button id="delete-btn" type="button" onclick="confirmDelete({{ producto.id }})">
+                                ELIMINAR
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
     </table>
 </div>
+
 <script>
+    let lastSortedColumn = null;
+    let lastSortDirection = 'asc'; // ascendente por defecto
+    let filterLimit = "all"; // Valor inicial para mostrar todos los elementos
+
+    function toggleSort(element, columnIndex, type) {
+        const table = document.getElementById("product-table");
+        const rows = Array.from(table.rows);
+        const icon = element.querySelector("i");
+
+        const isSameColumn = lastSortedColumn === columnIndex;
+        let isAscending = isSameColumn ? lastSortDirection !== 'asc' : true;
+        lastSortedColumn = columnIndex;
+        lastSortDirection = isAscending ? 'asc' : 'desc';
+
+        // Resetear todos los íconos
+        document.querySelectorAll(".sort-icon i").forEach(i => {
+            if (i.classList.contains("bi-sort-alpha-down") || i.classList.contains("bi-sort-alpha-up")) {
+                i.className = "bi bi-sort-alpha-down";
+            } else {
+                i.className = "bi bi-sort-numeric-down";
+            }
+        });
+
+        // Cambiar ícono actual
+        if (type === 'alpha') {
+            icon.className = isAscending ? "bi bi-sort-alpha-up" : "bi bi-sort-alpha-down";
+        } else {
+            icon.className = isAscending ? "bi bi-sort-numeric-up" : "bi bi-sort-numeric-down";
+        }
+
+        // Ordenar las filas
+        const sortedRows = rows.sort((a, b) => {
+            const aText = a.cells[columnIndex].textContent.trim();
+            const bText = b.cells[columnIndex].textContent.trim();
+
+            if (type === 'numeric') {
+                return isAscending ? aText - bText : bText - aText;
+            } else {
+                return isAscending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+            }
+        });
+
+        // Reinsertar filas
+        sortedRows.forEach(row => table.appendChild(row));
+    }
+
+    // Función para aplicar el límite de elementos visibles
+    function applyFilterLimit() {
+        filterLimit = document.getElementById("filter-limit").value;
+        const rows = document.querySelectorAll("#product-table tr");
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (filterLimit === "all" || visibleCount < filterLimit) {
+                row.style.display = ""; // Mostrar fila
+                visibleCount++;
+            } else {
+                row.style.display = "none"; // Ocultar fila
+            }
+        });
+    }
+
+    // Modificar la función de búsqueda para ignorar el límite al buscar
+    function filterTable() {
+        const searchInput = document.getElementById("search-bar").value.toLowerCase();
+        const rows = document.querySelectorAll("#product-table tr");
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const nameCell = row.querySelector("td:nth-child(1)"); // Primera columna (Nombre)
+            if (nameCell && nameCell.textContent.toLowerCase().includes(searchInput)) {
+                if (filterLimit === "all" || visibleCount < filterLimit) {
+                    row.style.display = ""; // Mostrar fila si coincide
+                    visibleCount++;
+                } else {
+                    row.style.display = "none"; // Ocultar fila si excede el límite
+                }
+            } else {
+                row.style.display = "none"; // Ocultar fila si no coincide
+            }
+        });
+    }
+
+    // Función para confirmar la eliminación de un producto
     function confirmDelete(productId) {
         swal({
             title: "¿Estás seguro?",
             text: "Una vez eliminado, no podrás recuperar este producto.",
             icon: "warning",
-            buttons: true,
+            buttons: ["Cancelar", "Eliminar"],
             dangerMode: true,
-        })
-        .then((willDelete) => {
+        }).then((willDelete) => {
             if (willDelete) {
-                // Realizar la solicitud AJAX para eliminar el producto
-                fetch('eliminar-producto.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `id=${productId}`
+                // Realizar la solicitud para eliminar el producto
+                fetch(`eliminar-producto.php?id=${productId}`, {
+                    method: "POST",
                 })
-                .then(response => {
+                .then((response) => {
                     if (response.ok) {
-                        // Recargar la tabla de productos dinámicamente
-                        const row = document.querySelector(`#delete-form-${productId}`).closest('tr');
+                        // Eliminar la fila del producto de la tabla
+                        const row = document.querySelector(`#delete-form-${productId}`).closest("tr");
                         if (row) {
-                            row.remove(); // Eliminar la fila del producto eliminado
+                            row.remove();
                         }
-                        swal("El producto ha sido eliminado.", {
+                        swal("El producto ha sido eliminado correctamente.", {
                             icon: "success",
                         });
                     } else {
-                        swal("Error al eliminar el producto.", {
+                        swal("Hubo un error al eliminar el producto.", {
                             icon: "error",
                         });
                     }
                 })
-                .catch(error => {
+                .catch((error) => {
                     swal("Error al procesar la solicitud.", {
                         icon: "error",
                     });
@@ -110,4 +218,5 @@ Ver Productos - Mi Colmado
         });
     }
 </script>
+
 {% endblock %}

@@ -125,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     header("Location: login.php");
                     exit();
                 } else {
-                    $errores['general'] = "Error al registrar el colmado.";
+                    $errores['general'] = "Error al registrarse.";
                 }
 
                 $stmt_colmado->close();
@@ -236,15 +236,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php if (isset($errores['general'])): ?>
             <p style="color: red;"><?php echo $errores['general']; ?></p>
         <?php endif; ?>
-
-        <?php if (isset($errores['general'])): ?>
-            <p style="color: red;"><?php echo $errores['general']; ?></p>
-        <?php endif; ?>
         <p id="ini-sesion">¿No eres nuevo por aquí? <a href="login.php">Haz clic aquí</a></p>
         <p id="ini-sesion">¿Quieres registrarte como consumidor? <a href="registro-consumidor.php">Haz clic aquí</a></p>
     </div>
 
     <script>
+        // Formatear cédula
+        document.getElementById('cedula').addEventListener('input', function(e) {
+            let cedula = e.target.value.replace(/\D/g, ''); // Solo números
+
+            if (cedula.length > 11) {
+                cedula = cedula.slice(0, 11);
+            }
+
+            e.target.value = cedula;
+        });
+
         // Formatear teléfono
         document.getElementById('telefono').addEventListener('input', function(e) {
             let telefono = e.target.value.replace(/\D/g, ''); // Solo números
@@ -256,40 +263,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             e.target.value = telefono;
         });
 
-        // Formatear cédula
-        document.getElementById('cedula').addEventListener('input', function(e) {
-            let cedula = e.target.value.replace(/\D/g, ''); // Solo números
-
-            if (cedula.length > 11) {
-                cedula = cedula.slice(0, 11);
-            }
-
-            e.target.value = cedula;
-        });
-    </script>
-
-    <script>
-        // Formatear teléfono
-        document.getElementById('telefono').addEventListener('input', function(e) {
-            let telefono = e.target.value.replace(/\D/g, ''); // Solo números
-
-            if (telefono.length > 10) {
-                telefono = telefono.slice(0, 10);
-            }
-
-            e.target.value = telefono;
-        });
-
-        // Formatear cédula
-        document.getElementById('cedula').addEventListener('input', function(e) {
-            let cedula = e.target.value.replace(/\D/g, ''); // Solo números
-
-            if (cedula.length > 11) {
-                cedula = cedula.slice(0, 11);
-            }
-
-            e.target.value = cedula;
-        });
     </script>
 </body>
 </html>
