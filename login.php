@@ -1,5 +1,5 @@
 <?php
-include 'config.php';
+include 'public/config.php';
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -22,9 +22,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['usuario_tipo'] = $tipo_usuario; // Guardamos el tipo de usuario correctamente
 
             if ($tipo_usuario === 'Proveedor') {
-                header("Location: inicio-proveedor.php"); // Redirige al panel de proveedor
+                header("Location: public/inicio-proveedor.php"); // Redirige al panel de proveedor
             } else {
-                header("Location: inicio-consumidor.php"); // Redirige al panel de consumidor
+                header("Location: public/inicio-consumidor.php"); // Redirige al panel de consumidor
             }
             exit();
         } else {
@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
             <button id="registrarse" type="submit">Iniciar sesión</button>
         </form>
-        <p id="ini-sesion">¿Eres nuevo por aquí? <a href="registro-consumidor.php">Haz clic aquí</a></p>
+        <p id="ini-sesion">¿Eres nuevo por aquí? <a href="public/registro-consumidor.php">Haz clic aquí</a></p>
     </div>
 </body>
 </html>
