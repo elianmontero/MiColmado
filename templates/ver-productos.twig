@@ -1,19 +1,20 @@
-{% extends "layout_proveedor.twig" %}
+{% extends "layout.twig" %}
 
 {% block title %}
 Ver Productos - Mi Colmado
 {% endblock %}
 
-{% block sesion %}
-    <div class="menu-seccion">
-        {% if session.usuario_nombre is defined %}
-            <p>Hola, {{ session.usuario_nombre }}</p>
-            <button onclick="location.href='logout.php'">Cerrar Sesión</button>
-        {% else %}
-            <button onclick="location.href='login.php'">Iniciar Sesión</button>
-            <button onclick="location.href='registro-proveedor.php'">Registrarse</button>
-        {% endif %}
-    </div>
+{% block enlaces %}
+<ul class="menu">
+    <li><a href="inicio-proveedor.php">Inicio</a></li>
+    <li><a href="agregar-producto.php">Agregar productos</a></li>
+    <li><a href="ver-productos.php">Ver productos</a></li>
+    <li><a href="#">Sobre nosotros</a></li>
+</ul>
+{% endblock %}
+
+{% block enlaces_logo %}
+<a href="inicio-proveedor.php"><img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado"><span id="nombre-emp">MI COLMADO</span></a>
 {% endblock %}
 
 {% block content %}
