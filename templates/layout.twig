@@ -42,10 +42,10 @@
           <div class="menu-seccion">
             {% if session.usuario_nombre is defined %}
               <p>Hola, {{ session.usuario_nombre }}</p>
-              <button onclick="location.href='logout.php'">Cerrar Sesión</button>
+              <button onclick="location.href='/public/logout.php'">Cerrar Sesión</button>
             {% else %}
-              <button onclick="location.href='login.php'">Iniciar Sesión</button>
-              <button onclick="location.href='registro-proveedor.php'">Registrarse</button>
+              <button onclick="location.href='/login.php'">Iniciar Sesión</button>
+              <button onclick="location.href='/public/registro-proveedor.php'">Registrarse</button>
             {% endif %}
           </div>
         </section>

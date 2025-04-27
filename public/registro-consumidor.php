@@ -1,6 +1,6 @@
 <?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    require 'config.php';
+    require 'public/config.php';
 
     $nombre = $_POST['nombre'];
     $email = $_POST['email'];
@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($stmt->execute()) {
             // Redirigir a login.php con el correo ya introducido
-            header("Location: login.php?email=" . urlencode($email));
+            header("Location: public/login.php?email=" . urlencode($email));
             exit();
         } else {
             $errores['general'] = "Error al registrarse.";
@@ -125,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
 
         <p id="ini-sesion">¿No eres nuevo por aquí? <a href="login.php">Haz clic aquí</a></p>
-        <p id="ini-sesion">¿Quieres registrar tu colmado? <a href="registro-proveedor.php">Haz clic aquí</a></p>
+        <p id="ini-sesion">¿Quieres registrar tu colmado? <a href="public/registro-proveedor.php">Haz clic aquí</a></p>
     </div>
 
     <script>
