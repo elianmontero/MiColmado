@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Agregar Productos</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>🔍 Buscar Productos</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="ver_productos.php">Ver Productos</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <!-- Sección de búsqueda de productos -->
+        <section>
+            <h2>Busca productos de República Dominicana para agregar a tu lista.</h2>
+            <div class="search-container">
+                <input type="text" id="busqueda" placeholder="Ej: café, chocolate">
+                <button onclick="buscarProductos()" class="search-button">Buscar Productos RD</button>
+            </div>
+            <p class="info-busqueda">Se mostrarán solo productos de República Dominicana</p>
+            
+            <!-- Spinner de carga cuando se están buscando productos -->
+            <div id="spinner" class="spinner" style="display: none;"></div>
+
+            <!-- Contenedor donde se mostrarán los resultados -->
+            <div id="resultados" class="producto-container"></div>
+        </section>
+    </main>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
