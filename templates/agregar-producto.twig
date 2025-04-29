@@ -17,99 +17,122 @@ Agregar Producto - Mi Colmado
 <a href="inicio-proveedor.php"><img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado"><span id="nombre-emp">MI COLMADO</span></a>
 {% endblock %}
 
-
 {% block styles %}
 <link rel="stylesheet" href="{{ asset('/public/assets/css/style-proveedor.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2>AGREGAR PRODUCTOS</h2>
+  <h2>AGREGAR PRODUCTOS</h2>
 
-    <div id="mensaje-popup" class="popup" style="display: none;">
-        <p id="mensaje-texto"></p>
-        <img id="mensaje-icono" src="" alt="Mensaje" class="popup-icon">
-    </div>
+  <div id="mensaje-popup" class="popup" style="display: none;">
+    <p id="mensaje-texto"></p>
+    <img id="mensaje-icono" src="" alt="Mensaje" class="popup-icon">
+  </div>
 
-    <div class="form-container">
-        <form id="agregar-producto-form" method="POST" enctype="multipart/form-data">
-            <div class="inputs">
-                <label for="nombre">Nombre:</label>
-                <input id="nombre" type="text" name="nombre" placeholder="Nombre del producto" required><br>
-    
-                <label for="precio">Precio:</label>
-                <input id="precio" type="text" name="precio" placeholder="Precio" required><br>
-    
-                <label for="stock">Stock:</label>
-                <input id="stock" type="number" name="stock" placeholder="Stock" required><br>
-    
-                <label for="imagen">Imagen:</label>
-                <input multiple id="imagen" type="file" name="imagen" required><br><br>
-    
-                <input type="submit" value="Agregar Producto">
-                <a id="productos" href="ver-productos.php">Ver productos</a>
-            </div>
-        </form>
+  <div id="form-wrapper" class="form-container">
+    <form id="agregar-producto-form" method="POST" enctype="multipart/form-data">
+      <div class="inputs">
+        <label for="nombre">Nombre:</label>
+        <input id="nombre" type="text" name="nombre" placeholder="Nombre del producto" required><br>
+
+        <label for="precio">Precio:</label>
+        <input id="precio" type="text" name="precio" placeholder="Precio" required><br>
+
+        <label for="stock">Stock:</label>
+        <input id="stock" type="number" name="stock" placeholder="Stock" required><br>
+
+        <label for="imagen">Imagen:</label>
+        <input id="imagen" type="file" name="imagen" accept="image/*" required><br>
+        
+        <!-- Vista previa de la imagen -->
+        <div id="preview-container" style="margin-top: 10px;">
+          <img id="preview" src="" alt="Vista previa de la imagen" style="display: none; max-width: 100px; max-height: 100px; border: 1px solid #ccc; border-radius: 5px;">
+        </div>
+        <br>
+
+        <input type="submit" value="Agregar Producto">
+        <a id="productos" href="ver-productos.php">Ver productos</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sección de búsqueda de productos -->
+  <section>
+    <h2>Busca productos de República Dominicana para agregar a tu colmado.</h2>
+    <div class="filters2">
+      <div class="search-container">
+        <i class="bi bi-search"></i>
+        <input type="text" id="busqueda" placeholder="Buscar producto...">
+        <button id="buscar-btn" class="search-button">Buscar</button>
+      </div>
     </div>
+    <p class="info-busqueda">Se mostrarán solo productos de República Dominicana</p>
+    <div id="spinner" class="spinner" style="display: none;"></div>
+
+    <div id="resultados" class="producto-container"></div>
+  </section>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('agregar-producto-form');
-        const mensajePopup = document.getElementById('mensaje-popup');
-        const mensajeTexto = document.getElementById('mensaje-texto');
-        const mensajeIcono = document.getElementById('mensaje-icono');
+  // Mostrar vista previa de la imagen seleccionada
+  document.getElementById('imagen').addEventListener('change', function(event) {
+    const preview = document.getElementById('preview');
+    const file = event.target.files[0];
 
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = '';
+      preview.style.display = 'none';
+    }
+  });
 
-            const formData = new FormData(form);
+  // AJAX del formulario
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('agregar-producto-form');
+    const mensajePopup = document.getElementById('mensaje-popup');
+    const mensajeTexto = document.getElementById('mensaje-texto');
+    const mensajeIcono = document.getElementById('mensaje-icono');
 
-            // Validación previa simple
-            if (!formData.get('nombre').trim() || !formData.get('precio').trim() || !formData.get('stock').trim() || !formData.get('imagen').name) {
-                mostrarMensaje('Hubo un problema al enviar el formulario.', 'error');
-                return;
-            }
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(form);
+      fetch('agregar-producto.php', {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          mostrarMensaje('Producto agregado correctamente.', 'success');
+          form.reset();
+          document.getElementById('preview').style.display = 'none';
+        } else {
+          mostrarMensaje(data.message, 'error');
+        }
+      })
+      .catch(() => mostrarMensaje('Error en la comunicación con el servidor.', 'error'));
 
-            fetch('agregar-producto.php', {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    mostrarMensaje('Producto agregado correctamente.', 'success');
-                    form.reset();
-                } else {
-                    mostrarMensaje('Ocurrió un error al procesar el formulario. Inténtalo de nuevo.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                mostrarMensaje('Ocurrió un error en la comunicación con el servidor. Inténtalo de nuevo.', 'error');
-            });
-
-            function mostrarMensaje(mensaje, tipo) {
-                mensajeTexto.textContent = mensaje;
-                if (tipo === 'success') {
-                    mensajePopup.classList.add('success');
-                    mensajePopup.classList.remove('error');
-                    mensajeIcono.src = '/public/assets/img/succes.webp';
-                } else {
-                    mensajePopup.classList.add('error');
-                    mensajePopup.classList.remove('success');
-                    mensajeIcono.src = '/public/assets/img/denied.webp';
-                }
-                mensajePopup.style.display = 'block';
-
-                setTimeout(() => {
-                    mensajePopup.style.display = 'none';
-                }, 3000);
-            }
-        });
+      function mostrarMensaje(text, tipo) {
+        mensajeTexto.textContent = text;
+        mensajePopup.classList.toggle('success', tipo === 'success');
+        mensajePopup.classList.toggle('error', tipo !== 'success');
+        mensajeIcono.src = tipo === 'success'
+          ? '/public/assets/img/succes.webp'
+          : '/public/assets/img/denied.webp';
+        mensajePopup.style.display = 'block';
+        setTimeout(() => mensajePopup.style.display = 'none', 3000);
+      }
     });
+  });
 </script>
+
+<script src="../API IMG/js/script.js"></script>
 {% endblock %}

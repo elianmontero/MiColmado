@@ -5,6 +5,7 @@ if (!isset($_GET['query']) || empty($_GET['query'])) {
     exit;
 }
 
+
 $query = urlencode($_GET['query']);
 $url = "https://world.openfoodfacts.org/cgi/search.pl?search_terms={$query}&json=1&sort_by=popularity&action=process&fields=product_name,brands,countries,image_url,code,product_quantity&page_size=125";
 
