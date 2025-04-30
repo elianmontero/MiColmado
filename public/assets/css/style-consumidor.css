@@ -191,7 +191,7 @@ input:focus {
 /* Tarjeta de producto */
 .product-card {
   width: 100%;
-  max-width: 200px;
+  max-width: 300px;
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -202,7 +202,15 @@ input:focus {
   justify-content: flex-start;
   text-align: center;
   padding: 25px 0px 15px 0px;
+  margin-left: 25px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cantidad-input {
+  border: none;
+  outline: none;
+  text-align: center;
+  padding: 10px;
 }
 
 /* Contenedor de la imagen del producto */

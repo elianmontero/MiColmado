@@ -15,32 +15,24 @@ $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
     return '/assets/' . ltrim($path, '/');
 }));
 
-// Obtener el carrito de la sesión
 if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
 }
 
-// Verificar si la solicitud es AJAX
 $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
 if ($isAjax) {
     header('Content-Type: application/json');
 
-    // Lógica AJAX: Agregar producto con cantidad
     if (isset($_GET['id']) && isset($_GET['cantidad'])) {
         $producto_id = intval($_GET['id']);
         $cantidad = intval($_GET['cantidad']);
 
-        // Validar parámetros
         if ($producto_id <= 0 || $cantidad <= 0) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Parámetros inválidos.'
-            ]);
+            echo json_encode(['success' => false, 'message' => 'Parámetros inválidos.']);
             exit();
         }
 
-        // Obtener el producto de la base de datos
         $stmt = $conn->prepare("SELECT * FROM producto WHERE id = ?");
         $stmt->bind_param("i", $producto_id);
         $stmt->execute();
@@ -48,7 +40,6 @@ if ($isAjax) {
         $stmt->close();
 
         if ($producto) {
-            // Validar que la cantidad solicitada no exceda el stock
             if ($cantidad > $producto['stock']) {
                 echo json_encode([
                     'success' => false,
@@ -57,7 +48,6 @@ if ($isAjax) {
                 exit();
             }
 
-            // Agregar o actualizar el producto en el carrito
             $encontrado = false;
             foreach ($_SESSION['carrito'] as &$item) {
                 if ($item['id'] == $producto_id) {
@@ -82,10 +72,8 @@ if ($isAjax) {
                 ];
             }
 
-            // Calcular el total
             $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
-            // Responder con JSON
             echo json_encode([
                 'success' => true,
                 'message' => 'Producto agregado al carrito.',
@@ -94,28 +82,19 @@ if ($isAjax) {
             ]);
             exit();
         } else {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Producto no encontrado.'
-            ]);
+            echo json_encode(['success' => false, 'message' => 'Producto no encontrado.']);
             exit();
         }
     }
 
-    // Lógica AJAX: Eliminar producto del carrito
     if (isset($_GET['eliminar'])) {
         $producto_id = intval($_GET['eliminar']);
 
-        // Validar parámetros
         if ($producto_id <= 0) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Parámetros inválidos.'
-            ]);
+            echo json_encode(['success' => false, 'message' => 'Parámetros inválidos.']);
             exit();
         }
 
-        // Eliminar el producto del carrito
         foreach ($_SESSION['carrito'] as $key => $item) {
             if ($item['id'] == $producto_id) {
                 unset($_SESSION['carrito'][$key]);
@@ -123,10 +102,8 @@ if ($isAjax) {
             }
         }
 
-        // Recalcular el total
         $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
-        // Responder con JSON
         echo json_encode([
             'success' => true,
             'message' => 'Producto eliminado del carrito.',
@@ -136,44 +113,101 @@ if ($isAjax) {
         exit();
     }
 
-    // Si no entra en ninguna de las anteriores
-    echo json_encode([
-        'success' => false,
-        'message' => 'Solicitud inválida.'
-    ]);
+    if (isset($_GET['actualizar']) && isset($_GET['cantidad'])) {
+        $producto_id = intval($_GET['actualizar']);
+        $cantidad = intval($_GET['cantidad']);
+
+        if ($cantidad < 1) {
+            echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser menor a 1.']);
+            exit();
+        }
+
+        foreach ($_SESSION['carrito'] as &$item) {
+            if ($item['id'] == $producto_id) {
+                if ($cantidad > $item['stock']) {
+                    echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser mayor al stock disponible.']);
+                    exit();
+                }
+
+                $item['cantidad'] = $cantidad;
+                $item['subtotal'] = $cantidad * $item['precio'];
+                break;
+            }
+        }
+
+        $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
+
+        echo json_encode([
+            'success' => true,
+            'subtotal' => number_format($item['subtotal'], 2),
+            'total' => number_format($total, 2)
+        ]);
+        exit();
+    }
+
+    echo json_encode(['success' => false, 'message' => 'Solicitud inválida.']);
     exit();
 }
 
-// Si no es AJAX, procesamos la lógica normal y mostramos la página
 $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
+
+    if (empty($_SESSION['carrito'])) {
+        echo json_encode(['success' => false, 'message' => 'El carrito está vacío.']);
+        exit();
+    }
+
     $usuario_id = $_SESSION['usuario_id'];
+    $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
     // Insertar pedido
-    $stmt = $conn->prepare("INSERT INTO pedido (usuario_id, total) VALUES (?, ?)");
+    $stmt = $conn->prepare("INSERT INTO pedido (usuario_id, total, estado) VALUES (?, ?, 'pendiente')");
+    if (!$stmt) {
+        echo json_encode(['success' => false, 'message' => 'Error al preparar el pedido: ' . $conn->error]);
+        exit();
+    }
+
     $stmt->bind_param("id", $usuario_id, $total);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        echo json_encode(['success' => false, 'message' => 'Error al insertar el pedido: ' . $stmt->error]);
+        exit();
+    }
+
     $pedido_id = $stmt->insert_id;
     $stmt->close();
 
-    // Insertar productos del pedido
-    $stmt = $conn->prepare("INSERT INTO pedido_producto (pedido_id, producto_id, cantidad, subtotal) VALUES (?, ?, ?, ?)");
-    foreach ($_SESSION['carrito'] as $item) {
-        $stmt->bind_param("iiid", $pedido_id, $item['id'], $item['cantidad'], $item['subtotal']);
-        $stmt->execute();
+    // Insertar detalle del pedido
+    $stmtDetalle = $conn->prepare("INSERT INTO pedido_producto (pedido_id, producto_id, cantidad, subtotal) VALUES (?, ?, ?, ?)");
+    if (!$stmtDetalle) {
+        echo json_encode(['success' => false, 'message' => 'Error al preparar los productos del pedido: ' . $conn->error]);
+        exit();
     }
-    $stmt->close();
 
-    // Vaciar el carrito
+    foreach ($_SESSION['carrito'] as $item) {
+        $idProducto = $item['id'];
+        $cantidad = $item['cantidad'];
+        $precio = $item['precio'];
+        $subtotal = $cantidad * $precio;
+
+        $stmtDetalle->bind_param("iiid", $pedido_id, $idProducto, $cantidad, $subtotal);
+        if (!$stmtDetalle->execute()) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al insertar producto del pedido: ' . $stmtDetalle->error
+            ]);
+            exit();
+        }
+    }
+    $stmtDetalle->close();
+
     $_SESSION['carrito'] = [];
 
-    // Redirigir a una página de confirmación
-    header("Location: confirmacion.php");
+    echo json_encode(['success' => true, 'message' => 'Pedido realizado con éxito.']);
     exit();
 }
 
-// Renderizar la página de compra
 echo $twig->render('compra.twig', [
     'carrito' => $_SESSION['carrito'],
     'total' => $total,

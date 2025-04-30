@@ -1,0 +1,97 @@
+{% extends "layout.twig" %}
+
+{% block title %}
+Carrito de compras - Mi Colmado
+{% endblock %}
+
+{% block enlaces %}
+<ul class="menu">
+    <li><a href="agregar-producto.php">Agregar productos</a></li>
+    <li><a href="ver-productos.php">Ver productos</a></li>
+    <li><a href="compra.php">Carrito de compras</a></li> <!-- Enlace al carrito -->
+    <li><a href="#">Sobre nosotros</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<h2>Pedidos Pendientes</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID Pedido</th>
+            <th>Cliente</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pedido in pedidos %}
+            <tr>
+                <td>{{ pedido.id }}</td>
+                <td>{{ pedido.usuario_nombre }}</td>
+                <td>${{ pedido.total }}</td>
+                <td>{{ pedido.estado }}</td>
+                <td>
+                    <button class="btn-confirmar" data-id="{{ pedido.id }}">Confirmar</button>
+                    <button class="btn-enviar" data-id="{{ pedido.id }}">Marcar como Enviado</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const botonesConfirmar = document.querySelectorAll('.btn-confirmar');
+        const botonesEnviar = document.querySelectorAll('.btn-enviar');
+
+        botonesConfirmar.forEach(boton => {
+            boton.addEventListener('click', async () => {
+                const pedidoId = boton.getAttribute('data-id');
+                try {
+                    const response = await fetch(`actualizar-pedido.php?id=${pedidoId}&estado=confirmado`, {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        swal("Pedido confirmado", "El pedido ha sido confirmado.", "success").then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        swal("Error", data.message, "error");
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
+                }
+            });
+        });
+
+        botonesEnviar.forEach(boton => {
+            boton.addEventListener('click', async () => {
+                const pedidoId = boton.getAttribute('data-id');
+                try {
+                    const response = await fetch(`actualizar-pedido.php?id=${pedidoId}&estado=enviado`, {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        swal("Pedido enviado", "El pedido ha sido marcado como enviado.", "success").then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        swal("Error", data.message, "error");
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

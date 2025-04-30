@@ -1,7 +1,7 @@
 {% extends "layout.twig" %}
 
 {% block title %}
-Inicio Consumidor - Mi Colmado
+Carrito de compras - Mi Colmado
 {% endblock %}
 
 {% block enlaces %}
@@ -14,7 +14,8 @@ Inicio Consumidor - Mi Colmado
 {% endblock %}
 
 {% block enlaces_logo %}
-<a href="inicio-consumidor.php"><img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado"><span id="nombre-emp">MI COLMADO</span></a>
+<a href="inicio-consumidor.php"><img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado"><span
+        id="nombre-emp">MI COLMADO</span></a>
 {% endblock %}
 
 {% block content %}
@@ -26,12 +27,16 @@ Inicio Consumidor - Mi Colmado
             {% for item in carrito %}
                 <div class="product-card">
                     <div class="img-product">
-                        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" onerror="this.src='/public/assets/img/no-image.png'">
+                        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" onerror="this.src='/public/assets/img/denied.webp'">
                     </div>
                     <h3>{{ item.nombre }}</h3>
                     <p>Precio: ${{ item.precio }}</p>
-                    <p>Cantidad: {{ item.cantidad }}</p>
-                    <p>Subtotal: ${{ item.subtotal }}</p>
+                    <div class="cantidad-container">
+                        <button class="btn-decrementar" data-id="{{ item.id }}" data-stock="{{ item.stock }}">-</button>
+                        <input type="number" class="cantidad-input" data-id="{{ item.id }}" value="{{ item.cantidad }}" min="1" max="{{ item.stock }}">
+                        <button class="btn-incrementar" data-id="{{ item.id }}" data-stock="{{ item.stock }}">+</button>
+                    </div>
+                    <p>Subtotal: $<span class="subtotal" data-id="{{ item.id }}">{{ item.subtotal }}</span></p>
                     <button class="btn-eliminar" data-id="{{ item.id }}">Eliminar</button>
                 </div>
             {% endfor %}
@@ -39,56 +44,189 @@ Inicio Consumidor - Mi Colmado
 
         <h3>Total: $<span id="total">{{ total }}</span></h3>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const botonesEliminar = document.querySelectorAll('.btn-eliminar');
-
-                botonesEliminar.forEach(boton => {
-                    boton.addEventListener('click', async () => {
-                        const productoId = boton.getAttribute('data-id');
-
-                        // Mostrar SweetAlert para confirmar la eliminación
-                        swal({
-                            title: "¿Estás seguro?",
-                            text: "El producto será eliminado del carrito.",
-                            icon: "warning",
-                            buttons: ["Cancelar", "Eliminar"],
-                            dangerMode: true,
-                        }).then(async (willDelete) => {
-                            if (willDelete) {
-                                try {
-                                    const response = await fetch(`compra.php?eliminar=${productoId}`, {
-                                        method: 'GET',
-                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                    });
-
-                                    if (!response.ok) {
-                                        throw new Error(`HTTP error! status: ${response.status}`);
-                                    }
-
-                                    const data = await response.json();
-
-                                    if (data.success) {
-                                        swal("Producto eliminado del carrito.", {
-                                            icon: "success",
-                                        }).then(() => {
-                                            location.reload(); // Recargar la página para actualizar el carrito
-                                        });
-                                    } else {
-                                        swal("Error", data.message, "error");
-                                    }
-                                } catch (error) {
-                                    console.error('Error:', error);
-                                    swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
-                                }
-                            }
-                        });
-                    });
-                });
-            });
-        </script>
+        <form id="finalizar-compra-form" method="POST">
+            <button type="submit" id="btn-finalizar" class="btn-finalizar">Finalizar Compra</button>
+        </form>
     {% else %}
-        <p>Tu carrito está vacío. <a href="inicio-consumidor.php">Agrega productos</a>.</p>
+        <p>Tu carrito está vacío. <a href="inicio-consumidor.php">Agregar productos</a>.</p>
     {% endif %}
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const botonesIncrementar = document.querySelectorAll('.btn-incrementar');
+        const botonesDecrementar = document.querySelectorAll('.btn-decrementar');
+        const inputsCantidad = document.querySelectorAll('.cantidad-input');
+        const totalElement = document.getElementById('total');
+
+        // Actualizar subtotal y total
+        const actualizarTotales = async (productoId, nuevaCantidad) => {
+            try {
+                const response = await fetch(`compra.php?actualizar=${productoId}&cantidad=${nuevaCantidad}`, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.querySelector(`.subtotal[data-id="${productoId}"]`).textContent = data.subtotal;
+                    totalElement.textContent = data.total;
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Hubo un problema al actualizar la cantidad.');
+            }
+        };
+
+        // Incrementar cantidad
+        botonesIncrementar.forEach(boton => {
+            boton.addEventListener('click', () => {
+                const productoId = boton.getAttribute('data-id');
+                const stock = parseInt(boton.getAttribute('data-stock'));
+                const inputCantidad = document.querySelector(`.cantidad-input[data-id="${productoId}"]`);
+                let cantidadActual = parseInt(inputCantidad.value);
+
+                if (cantidadActual < stock) {
+                    cantidadActual++;
+                    inputCantidad.value = cantidadActual;
+                    actualizarTotales(productoId, cantidadActual);
+                } else {
+                    alert('No puedes agregar más productos que el stock disponible.');
+                }
+            });
+        });
+
+        // Decrementar cantidad
+        botonesDecrementar.forEach(boton => {
+            boton.addEventListener('click', () => {
+                const productoId = boton.getAttribute('data-id');
+                const inputCantidad = document.querySelector(`.cantidad-input[data-id="${productoId}"]`);
+                let cantidadActual = parseInt(inputCantidad.value);
+
+                if (cantidadActual > 1) {
+                    cantidadActual--;
+                    inputCantidad.value = cantidadActual;
+                    actualizarTotales(productoId, cantidadActual);
+                } else {
+                    alert('La cantidad no puede ser menor a 1.');
+                }
+            });
+        });
+
+        // Validar cantidad manualmente
+        inputsCantidad.forEach(input => {
+            input.addEventListener('change', () => {
+                const productoId = input.getAttribute('data-id');
+                const stock = parseInt(input.getAttribute('max'));
+                let cantidadActual = parseInt(input.value);
+
+                if (cantidadActual < 1) {
+                    alert('La cantidad no puede ser menor a 1.');
+                    input.value = 1;
+                } else if (cantidadActual > stock) {
+                    alert('No puedes agregar más productos que el stock disponible.');
+                    input.value = stock;
+                } else {
+                    actualizarTotales(productoId, cantidadActual);
+                }
+            });
+        });
+
+        const botonesEliminar = document.querySelectorAll('.btn-eliminar');
+
+        botonesEliminar.forEach(boton => {
+            boton.addEventListener('click', async () => {
+                const productoId = boton.getAttribute('data-id');
+
+                // Mostrar SweetAlert para confirmar la eliminación
+                swal({
+                    title: "¿Estás seguro?",
+                    text: "El producto será eliminado del carrito.",
+                    icon: "warning",
+                    buttons: ["Cancelar", "Eliminar"],
+                    dangerMode: true,
+                }).then(async (willDelete) => {
+                    if (willDelete) {
+                        try {
+                            const response = await fetch(`compra.php?eliminar=${productoId}`, {
+                                method: 'GET',
+                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+
+                            const data = await response.json();
+
+                            if (data.success) {
+                                swal("Producto eliminado del carrito.", {
+                                    icon: "success",
+                                }).then(() => {
+                                    location.reload(); // Recargar la página para actualizar el carrito
+                                });
+                            } else {
+                                swal("Error", data.message, "error");
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
+                        }
+                    }
+                });
+            });
+        });
+
+        const formFinalizarCompra = document.getElementById('finalizar-compra-form');
+
+        formFinalizarCompra?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Mostrar SweetAlert para confirmar la finalización del pedido
+            swal({
+                title: "¿Confirmar pedido?",
+                text: "Se enviará tu pedido como pendiente. Recibirás más información en tu WhatsApp.",
+                icon: "info",
+                buttons: ["Cancelar", "Confirmar"],
+            }).then(async (confirmar) => {
+                if (confirmar) {
+                    try {
+                        const response = await fetch('compra.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: 'accion=finalizar'
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            swal("Pedido realizado", "Espere más información en su WhatsApp.", "success").then(() => {
+                                window.location.href = 'inicio-consumidor.php';
+                            });
+                        } else {
+                            swal("Error", data.message, "error");
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
+                    }
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
