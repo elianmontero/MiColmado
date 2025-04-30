@@ -4,7 +4,7 @@ session_start();
 require_once '../vendor/autoload.php';
 
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 
     // Insertar detalle del pedido
-    $stmtDetalle = $conn->prepare("INSERT INTO pedido_producto (pedido_id, producto_id, cantidad, subtotal) VALUES (?, ?, ?, ?)");
+    $stmtDetalle = $conn->prepare("INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, subtotal) VALUES (?, ?, ?, ?)");
     if (!$stmtDetalle) {
         echo json_encode(['success' => false, 'message' => 'Error al preparar los productos del pedido: ' . $conn->error]);
         exit();
