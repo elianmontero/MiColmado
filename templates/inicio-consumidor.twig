@@ -8,6 +8,7 @@ Inicio Consumidor - Mi Colmado
 <ul class="menu">
     <li><a href="agregar-producto.php">Agregar productos</a></li>
     <li><a href="ver-productos.php">Ver productos</a></li>
+    <li><a href="compra.php">Carrito de compras</a></li> <!-- Enlace al carrito -->
     <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
@@ -64,11 +65,13 @@ Inicio Consumidor - Mi Colmado
         {% for producto in productos %}
             <div class="product-card">
                 <div class="img-product">
-                    <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+                    <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}" onerror="this.src='/public/assets/img/no-image.png'">
                 </div>
                 <h3>{{ producto.nombre }}</h3>
-                <p>${{ producto.precio }}</p>
-                <button onclick="location.href='detalle-producto.php?id={{ producto.id }}'">Comprar</button>
+                <p>Precio: ${{ producto.precio }}</p>
+                <p>Stock disponible: {{ producto.stock }}</p>
+                <input type="number" class="cantidad-producto" data-id="{{ producto.id }}" min="1" max="{{ producto.stock }}" value="1">
+                <button class="btn-comprar" data-id="{{ producto.id }}">Comprar</button>
             </div>
         {% endfor %}
     </div>
@@ -112,6 +115,41 @@ Inicio Consumidor - Mi Colmado
                 }
             });
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const botonesComprar = document.querySelectorAll('.btn-comprar');
+
+            botonesComprar.forEach(boton => {
+                boton.addEventListener('click', async () => {
+                    const productoId = boton.getAttribute('data-id');
+                    const cantidadInput = document.querySelector(`.cantidad-producto[data-id="${productoId}"]`);
+                    const cantidad = cantidadInput ? cantidadInput.value : 1;
+
+                    try {
+                        const response = await fetch(`compra.php?id=${productoId}&cantidad=${cantidad}`, {
+                            method: 'GET',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Redirigir al carrito después de agregar el producto
+                            window.location.href = 'compra.php';
+                        } else {
+                            alert(data.message); // Mostrar mensaje de error si ocurre
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Hubo un problema al procesar tu solicitud.');
+                    }
+                });
+            });
+        });
     </script>
 
 {% endblock %}

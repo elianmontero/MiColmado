@@ -1,0 +1,94 @@
+{% extends "layout.twig" %}
+
+{% block title %}
+Inicio Consumidor - Mi Colmado
+{% endblock %}
+
+{% block enlaces %}
+<ul class="menu">
+    <li><a href="agregar-producto.php">Agregar productos</a></li>
+    <li><a href="ver-productos.php">Ver productos</a></li>
+    <li><a href="compra.php">Carrito de compras</a></li> <!-- Enlace al carrito -->
+    <li><a href="#">Sobre nosotros</a></li>
+</ul>
+{% endblock %}
+
+{% block enlaces_logo %}
+<a href="inicio-consumidor.php"><img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado"><span id="nombre-emp">MI COLMADO</span></a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Carrito de Compras</h2>
+
+    {% if carrito|length > 0 %}
+        <div class="product-container">
+            {% for item in carrito %}
+                <div class="product-card">
+                    <div class="img-product">
+                        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" onerror="this.src='/public/assets/img/no-image.png'">
+                    </div>
+                    <h3>{{ item.nombre }}</h3>
+                    <p>Precio: ${{ item.precio }}</p>
+                    <p>Cantidad: {{ item.cantidad }}</p>
+                    <p>Subtotal: ${{ item.subtotal }}</p>
+                    <button class="btn-eliminar" data-id="{{ item.id }}">Eliminar</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h3>Total: $<span id="total">{{ total }}</span></h3>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const botonesEliminar = document.querySelectorAll('.btn-eliminar');
+
+                botonesEliminar.forEach(boton => {
+                    boton.addEventListener('click', async () => {
+                        const productoId = boton.getAttribute('data-id');
+
+                        // Mostrar SweetAlert para confirmar la eliminación
+                        swal({
+                            title: "¿Estás seguro?",
+                            text: "El producto será eliminado del carrito.",
+                            icon: "warning",
+                            buttons: ["Cancelar", "Eliminar"],
+                            dangerMode: true,
+                        }).then(async (willDelete) => {
+                            if (willDelete) {
+                                try {
+                                    const response = await fetch(`compra.php?eliminar=${productoId}`, {
+                                        method: 'GET',
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    });
+
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+
+                                    const data = await response.json();
+
+                                    if (data.success) {
+                                        swal("Producto eliminado del carrito.", {
+                                            icon: "success",
+                                        }).then(() => {
+                                            location.reload(); // Recargar la página para actualizar el carrito
+                                        });
+                                    } else {
+                                        swal("Error", data.message, "error");
+                                    }
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
+                                }
+                            }
+                        });
+                    });
+                });
+            });
+        </script>
+    {% else %}
+        <p>Tu carrito está vacío. <a href="inicio-consumidor.php">Agrega productos</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

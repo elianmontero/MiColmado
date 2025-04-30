@@ -29,6 +29,20 @@ while ($fila = $resultado->fetch_assoc()) {
 }
 $stmt->close();
 
+// Verificar si es una solicitud AJAX
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+if ($isAjax) {
+    // Configurar encabezado JSON
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'productos' => $productos
+    ]);
+    exit();
+}
+
+// Renderizar la plantilla Twig para solicitudes normales
 echo $twig->render('inicio-consumidor.twig', [
     'productos' => $productos,
     'css_url' => '../public/assets/css/style-consumidor.css',
