@@ -63,43 +63,44 @@ try {
             } else {
                 throw new Exception('Error SQL: ' . $stmt->error);
             }
+        } elseif (strpos($contentType, 'multipart/form-data') !== false) {
+            // Procesar datos enviados desde la API o formulario clásico
+            $nombre = trim($_POST['nombre'] ?? '');
+            $imagen = $_FILES['imagen'] ?? null;
+
+            if (empty($nombre) || !$imagen || $imagen['error'] !== UPLOAD_ERR_OK) {
+                throw new Exception('Datos incompletos o imagen inválida.');
+            }
+
+            // Generar un nombre único para la imagen
+            $uploadDir = __DIR__ . '/../public/uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
+            $uniqueName = uniqid('img_', true) . '.' . $extension;
+            $targetPath = $uploadDir . $uniqueName;
+
+            if (!move_uploaded_file($imagen['tmp_name'], $targetPath)) {
+                throw new Exception('Error al guardar la imagen.');
+            }
+
+            $rutaImagenDB = '/public/uploads/' . $uniqueName;
+
+            // Insertar en la base de datos
+            $stmt = $conn->prepare(
+                'INSERT INTO producto (nombre, imagen, id_colmado)
+                 VALUES (?, ?, ?)'
+            );
+            $stmt->bind_param('ssi', $nombre, $rutaImagenDB, $id_colmado);
+
+            if (!$stmt->execute()) {
+                throw new Exception('Error SQL: ' . $stmt->error);
+            }
+
+            $response = ['success' => true, 'message' => 'Producto agregado exitosamente.'];
         } else {
-            // 🧙‍♂️ Procesar formulario clásico
-            $nombre = trim($_POST["nombre"] ?? '');
-            $precio = $_POST["precio"] ?? '';
-            $stock = $_POST["stock"] ?? '';
-            $imagen = $_FILES["imagen"] ?? null;
-
-            if (empty($nombre) || !is_numeric($precio) || !is_numeric($stock) || !$imagen) {
-                throw new Exception('Datos incompletos o incorrectos en el formulario.');
-            }
-
-            $directorio = "../public/assets/imagenes-productos/";
-            if (!is_dir($directorio)) {
-                mkdir($directorio, 0777, true);
-            }
-
-            $archivo = $directorio . basename($imagen["name"]);
-            $tipoArchivo = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
-            $extensionesPermitidas = ["jpg", "jpeg", "png", "webp"];
-
-            if (!in_array($tipoArchivo, $extensionesPermitidas)) {
-                throw new Exception('El formato de la imagen no es permitido.');
-            }
-
-            if (!move_uploaded_file($imagen["tmp_name"], $archivo)) {
-                throw new Exception('Error al subir la imagen.');
-            }
-
-            $sql = "INSERT INTO producto (nombre, precio, stock, imagen, id_colmado) VALUES (?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssi", $nombre, $precio, $stock, $archivo, $id_colmado);
-
-            if ($stmt->execute()) {
-                $response = ['success' => true, 'message' => 'Producto agregado correctamente.'];
-            } else {
-                throw new Exception('Error al agregar el producto: ' . $stmt->error);
-            }
+            throw new Exception('Tipo de contenido no soportado.');
         }
     }
 } catch (Exception $e) {

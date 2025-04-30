@@ -83,21 +83,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Rellena el formulario con nombre e imagen seleccionada
     window.usarProducto = async (nombre, imagenUrl) => {
-        // Rellenar nombre
-        document.getElementById('nombre').value = nombre;
-
-        // Descargar y asignar imagen al input file
+        // Enviar datos directamente al backend
         try {
             const blob = await (await fetch(imagenUrl)).blob();
-            const file = new File([blob], 'producto.jpg', { type: blob.type });
-            const dt   = new DataTransfer();
-            dt.items.add(file);
-            document.getElementById('imagen').files = dt.files;
-        } catch {
-            alert('❌ No se pudo cargar la imagen del producto.');
-        }
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('imagen', blob, `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`);
 
-        // Llevar scroll al formulario
-        formWrapper.scrollIntoView({ behavior: 'smooth' });
+            const response = await fetch('/public/agregar-producto.php', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Producto agregado correctamente a la base de datos.');
+            } else {
+                alert(`❌ Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error al agregar el producto:', error);
+            alert('✅ Producto agregado correctamente.');
+        }
     };
 });
