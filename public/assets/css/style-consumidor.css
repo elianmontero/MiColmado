@@ -63,7 +63,6 @@ body h2 {
   margin-top: 20px;
 }
 
-/* Estilo para el enlace del carrito en el menú */
 .menu li a {
   color: white;
   text-decoration: none;
@@ -354,6 +353,16 @@ input:focus {
 .cantidad-producto:focus {
   outline: none;
   border-color: #56a55a;
+}
+
+.carrito-msj {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  justify-content: center;
+  text-align: center;
+  background-color: #fff;
+  color: #56a55a;
 }
 
 footer {

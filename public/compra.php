@@ -19,143 +19,12 @@ if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
 }
 
-$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
-if ($isAjax) {
-    header('Content-Type: application/json');
-
-    if (isset($_GET['id']) && isset($_GET['cantidad'])) {
-        $producto_id = intval($_GET['id']);
-        $cantidad = intval($_GET['cantidad']);
-
-        if ($producto_id <= 0 || $cantidad <= 0) {
-            echo json_encode(['success' => false, 'message' => 'Parámetros inválidos.']);
-            exit();
-        }
-
-        $stmt = $conn->prepare("SELECT * FROM producto WHERE id = ?");
-        $stmt->bind_param("i", $producto_id);
-        $stmt->execute();
-        $producto = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        if ($producto) {
-            if ($cantidad > $producto['stock']) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'La cantidad solicitada excede el stock disponible. Stock actual: ' . $producto['stock']
-                ]);
-                exit();
-            }
-
-            $encontrado = false;
-            foreach ($_SESSION['carrito'] as &$item) {
-                if ($item['id'] == $producto_id) {
-                    $item['cantidad'] += $cantidad;
-                    if ($item['cantidad'] > $producto['stock']) {
-                        $item['cantidad'] = $producto['stock'];
-                    }
-                    $item['subtotal'] = $item['cantidad'] * $producto['precio'];
-                    $encontrado = true;
-                    break;
-                }
-            }
-            if (!$encontrado) {
-                $_SESSION['carrito'][] = [
-                    'id' => $producto['id'],
-                    'nombre' => $producto['nombre'],
-                    'precio' => $producto['precio'],
-                    'imagen' => $producto['imagen'],
-                    'cantidad' => $cantidad,
-                    'subtotal' => $producto['precio'] * $cantidad,
-                    'stock' => $producto['stock']
-                ];
-            }
-
-            $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Producto agregado al carrito.',
-                'total' => $total,
-                'carrito' => $_SESSION['carrito']
-            ]);
-            exit();
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Producto no encontrado.']);
-            exit();
-        }
-    }
-
-    if (isset($_GET['eliminar'])) {
-        $producto_id = intval($_GET['eliminar']);
-
-        if ($producto_id <= 0) {
-            echo json_encode(['success' => false, 'message' => 'Parámetros inválidos.']);
-            exit();
-        }
-
-        foreach ($_SESSION['carrito'] as $key => $item) {
-            if ($item['id'] == $producto_id) {
-                unset($_SESSION['carrito'][$key]);
-                break;
-            }
-        }
-
-        $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Producto eliminado del carrito.',
-            'total' => $total,
-            'carrito' => $_SESSION['carrito']
-        ]);
-        exit();
-    }
-
-    if (isset($_GET['actualizar']) && isset($_GET['cantidad'])) {
-        $producto_id = intval($_GET['actualizar']);
-        $cantidad = intval($_GET['cantidad']);
-
-        if ($cantidad < 1) {
-            echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser menor a 1.']);
-            exit();
-        }
-
-        foreach ($_SESSION['carrito'] as &$item) {
-            if ($item['id'] == $producto_id) {
-                if ($cantidad > $item['stock']) {
-                    echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser mayor al stock disponible.']);
-                    exit();
-                }
-
-                $item['cantidad'] = $cantidad;
-                $item['subtotal'] = $cantidad * $item['precio'];
-                break;
-            }
-        }
-
-        $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
-
-        echo json_encode([
-            'success' => true,
-            'subtotal' => number_format($item['subtotal'], 2),
-            'total' => number_format($total, 2)
-        ]);
-        exit();
-    }
-
-    echo json_encode(['success' => false, 'message' => 'Solicitud inválida.']);
-    exit();
-}
-
 $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json');
-
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'finalizar') {
     if (empty($_SESSION['carrito'])) {
-        echo json_encode(['success' => false, 'message' => 'El carrito está vacío.']);
+        $_SESSION['mensaje_error'] = 'El carrito está vacío.';
+        header("Location: compra.php");
         exit();
     }
 
@@ -163,15 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
     // Insertar pedido
-    $stmt = $conn->prepare("INSERT INTO pedido (usuario_id, total, estado) VALUES (?, ?, 'pendiente')");
+    $stmt = $conn->prepare("INSERT INTO pedido (id_usuario, total, estado) VALUES (?, ?, 'pendiente')");
     if (!$stmt) {
-        echo json_encode(['success' => false, 'message' => 'Error al preparar el pedido: ' . $conn->error]);
+        $_SESSION['mensaje_error'] = 'Error al preparar el pedido: ' . $conn->error;
+        header("Location: compra.php");
         exit();
     }
 
     $stmt->bind_param("id", $usuario_id, $total);
     if (!$stmt->execute()) {
-        echo json_encode(['success' => false, 'message' => 'Error al insertar el pedido: ' . $stmt->error]);
+        $_SESSION['mensaje_error'] = 'Error al insertar el pedido: ' . $stmt->error;
+        header("Location: compra.php");
         exit();
     }
 
@@ -181,37 +52,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Insertar detalle del pedido
     $stmtDetalle = $conn->prepare("INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, subtotal) VALUES (?, ?, ?, ?)");
     if (!$stmtDetalle) {
-        echo json_encode(['success' => false, 'message' => 'Error al preparar los productos del pedido: ' . $conn->error]);
+        $_SESSION['mensaje_error'] = 'Error al preparar los productos del pedido: ' . $conn->error;
+        header("Location: compra.php");
         exit();
     }
 
     foreach ($_SESSION['carrito'] as $item) {
-        $idProducto = $item['id'];
+    $idProducto = $item['id'];
         $cantidad = $item['cantidad'];
         $precio = $item['precio'];
         $subtotal = $cantidad * $precio;
 
         $stmtDetalle->bind_param("iiid", $pedido_id, $idProducto, $cantidad, $subtotal);
         if (!$stmtDetalle->execute()) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Error al insertar producto del pedido: ' . $stmtDetalle->error
-            ]);
+            $_SESSION['mensaje_error'] = 'Error al insertar producto del pedido: ' . $stmtDetalle->error;
+            header("Location: compra.php");
             exit();
         }
     }
     $stmtDetalle->close();
 
+    // Limpiar el carrito después de confirmar el pedido
     $_SESSION['carrito'] = [];
-
-    echo json_encode(['success' => true, 'message' => 'Pedido realizado con éxito.']);
+    $_SESSION['mensaje_exito'] = 'Pedido realizado con éxito.';
+    header("Location: compra.php");
     exit();
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'eliminar') {
+    $idProducto = $_POST['id_producto'];
+
+    // Verificar si el producto existe en el carrito
+    foreach ($_SESSION['carrito'] as $index => $item) {
+        if ($item['id'] == $idProducto) {
+            unset($_SESSION['carrito'][$index]); // Eliminar el producto del carrito
+            $_SESSION['carrito'] = array_values($_SESSION['carrito']); // Reindexar el array
+            $_SESSION['mensaje_exito'] = 'Producto eliminado del carrito.';
+            break;
+        }
+    }
+
+    // Si no está en el carrito, agregarlo
+    if (!$productoEncontrado) {
+        // Obtener información del producto desde la base de datos
+        $stmt = $conn->prepare("SELECT id, nombre, precio FROM producto WHERE id = ?");
+        $stmt->bind_param("i", $idProducto);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        $producto = $resultado->fetch_assoc();
+
+        if ($producto) {
+            $_SESSION['carrito'][] = [
+                'id' => $producto['id'],
+                'nombre' => $producto['nombre'],
+                'precio' => $producto['precio'],
+                'cantidad' => $cantidad,
+                'subtotal' => $producto['precio'] * $cantidad
+            ];
+        }
+        $stmt->close();
+    }
+
+    // Responder con JSON para solicitudes AJAX
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'message' => 'Producto agregado al carrito.']);
+    exit();
+}
+
+// Renderizar la plantilla Twig
 echo $twig->render('compra.twig', [
     'carrito' => $_SESSION['carrito'],
     'total' => $total,
     'css_url' => '../public/assets/css/style-consumidor.css',
-    'session' => $_SESSION
+    'session' => $_SESSION,
+    'mensaje_error' => $_SESSION['mensaje_error'] ?? null,
+    'mensaje_exito' => $_SESSION['mensaje_exito'] ?? null
 ]);
+
+// Limpiar mensajes de sesión después de mostrarlos
+unset($_SESSION['mensaje_error'], $_SESSION['mensaje_exito']);
 ?>
