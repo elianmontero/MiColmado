@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Apr 30, 2025 at 04:37 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.1.25
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 06-05-2025 a las 05:53:10
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.1.25
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `micolmado`
+-- Base de datos: `micolmado`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `colmado`
+-- Estructura de tabla para la tabla `colmado`
 --
 
 CREATE TABLE `colmado` (
@@ -35,7 +35,7 @@ CREATE TABLE `colmado` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `colmado`
+-- Volcado de datos para la tabla `colmado`
 --
 
 INSERT INTO `colmado` (`id`, `nombre_colmado`, `direccion`, `id_usuario`) VALUES
@@ -44,87 +44,34 @@ INSERT INTO `colmado` (`id`, `nombre_colmado`, `direccion`, `id_usuario`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `detalle_pedido`
---
-
-CREATE TABLE `detalle_pedido` (
-  `id` int(11) NOT NULL,
-  `id_pedido` int(11) NOT NULL,
-  `id_producto` int(11) NOT NULL,
-  `cantidad` int(11) NOT NULL,
-  `precio_unitario` decimal(10,2) NOT NULL,
-  `subtotal` decimal(10,2) GENERATED ALWAYS AS (`cantidad` * `precio_unitario`) STORED
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `envio`
---
-
-CREATE TABLE `envio` (
-  `id` int(11) NOT NULL,
-  `nombre_producto` varchar(100) NOT NULL,
-  `fecha_envio` date NOT NULL,
-  `estado` varchar(50) NOT NULL,
-  `cliente_id` int(11) NOT NULL,
-  `colmado_id` int(11) NOT NULL,
-  `id_producto` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `envio_producto`
---
-
-CREATE TABLE `envio_producto` (
-  `envio_id` int(11) NOT NULL,
-  `producto_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pedido`
---
-
-CREATE TABLE `pedido` (
-  `id` int(11) NOT NULL,
-  `id_usuario` int(11) NOT NULL,
-  `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
-  `estado` enum('pendiente','procesado','entregado','cancelado') DEFAULT 'pendiente',
-  `total` decimal(10,2) NOT NULL,
-  `direccion_envio` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `producto`
+-- Estructura de tabla para la tabla `producto`
 --
 
 CREATE TABLE `producto` (
   `id` int(11) NOT NULL,
   `nombre` varchar(100) NOT NULL,
+  `marca` varchar(100) NOT NULL,
   `precio` float NOT NULL,
   `stock` int(11) NOT NULL DEFAULT 0,
   `imagen` varchar(255) DEFAULT NULL,
-  `id_colmado` int(11) NOT NULL,
-  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id_colmado` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `producto`
+-- Volcado de datos para la tabla `producto`
 --
 
-INSERT INTO `producto` (`id`, `nombre`, `precio`, `stock`, `imagen`, `id_colmado`, `fecha_modificacion`) VALUES
-(1, 'Digestive Chocolate', 100, 31, '/public/uploads/img_6812332889d262.58422897.jpg', 5, '2025-04-30 14:27:03');
+INSERT INTO `producto` (`id`, `nombre`, `marca`, `precio`, `stock`, `imagen`, `id_colmado`) VALUES
+(3, 'Pan tostado integral', '', 120, 25, '../public/assets/imagenes-productos/producto.jpg', 5),
+(4, 'Digestive Chocolate', '', 75, 30, '/public/uploads/img_681169b0652cd4.46444630.jpg', 5),
+(5, 'Krit krititas galletas saladas', '', 50, 10, '/public/uploads/img_681169b3a405b7.24754230.jpg', 5),
+(6, 'Coco', '', 35, 10, '/public/uploads/img_68116b75e255c1.18890848.png', 5),
+(7, 'Agua de bronchales', '', 20, 9, '/public/uploads/img_68116bce4faca2.10819144.jpg', 5);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `usuario`
+-- Estructura de tabla para la tabla `usuario`
 --
 
 CREATE TABLE `usuario` (
@@ -139,7 +86,7 @@ CREATE TABLE `usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `usuario`
+-- Volcado de datos para la tabla `usuario`
 --
 
 INSERT INTO `usuario` (`id`, `nombre_completo`, `direccion`, `telefono`, `email`, `contraseña`, `cedula`, `tipo_usuario`) VALUES
@@ -147,56 +94,25 @@ INSERT INTO `usuario` (`id`, `nombre_completo`, `direccion`, `telefono`, `email`
 (13, 'Elian Montero', 'Calle J3 esquina Francisco Sánchez #11', '8091176127', 'elian-consumidor04@gmail.com', '$2y$10$vYRd44T5osGn0yc6WMmBEu4BPKf75I2.kMzUmXEXvCAHKFyrS/wMa', NULL, 'Consumidor');
 
 --
--- Indexes for dumped tables
+-- Índices para tablas volcadas
 --
 
 --
--- Indexes for table `colmado`
+-- Indices de la tabla `colmado`
 --
 ALTER TABLE `colmado`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_nombre_colmadero` (`id_usuario`);
 
 --
--- Indexes for table `detalle_pedido`
---
-ALTER TABLE `detalle_pedido`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `id_pedido` (`id_pedido`),
-  ADD KEY `id_producto` (`id_producto`);
-
---
--- Indexes for table `envio`
---
-ALTER TABLE `envio`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `cliente_id` (`cliente_id`),
-  ADD KEY `colmado_id` (`colmado_id`),
-  ADD KEY `fk_envio_producto` (`id_producto`);
-
---
--- Indexes for table `envio_producto`
---
-ALTER TABLE `envio_producto`
-  ADD PRIMARY KEY (`envio_id`,`producto_id`),
-  ADD KEY `producto_id` (`producto_id`);
-
---
--- Indexes for table `pedido`
---
-ALTER TABLE `pedido`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `id_usuario` (`id_usuario`);
-
---
--- Indexes for table `producto`
+-- Indices de la tabla `producto`
 --
 ALTER TABLE `producto`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_colmado` (`id_colmado`);
 
 --
--- Indexes for table `usuario`
+-- Indices de la tabla `usuario`
 --
 ALTER TABLE `usuario`
   ADD PRIMARY KEY (`id`),
@@ -204,85 +120,39 @@ ALTER TABLE `usuario`
   ADD UNIQUE KEY `cedula` (`cedula`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT de las tablas volcadas
 --
 
 --
--- AUTO_INCREMENT for table `colmado`
+-- AUTO_INCREMENT de la tabla `colmado`
 --
 ALTER TABLE `colmado`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT for table `detalle_pedido`
---
-ALTER TABLE `detalle_pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `envio`
---
-ALTER TABLE `envio`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `pedido`
---
-ALTER TABLE `pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `producto`
+-- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `usuario`
+-- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- Constraints for dumped tables
+-- Restricciones para tablas volcadas
 --
 
 --
--- Constraints for table `colmado`
+-- Filtros para la tabla `colmado`
 --
 ALTER TABLE `colmado`
   ADD CONSTRAINT `fk_nombre_colmadero` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `detalle_pedido`
---
-ALTER TABLE `detalle_pedido`
-  ADD CONSTRAINT `detalle_pedido_ibfk_1` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `detalle_pedido_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `envio`
---
-ALTER TABLE `envio`
-  ADD CONSTRAINT `envio_ibfk_1` FOREIGN KEY (`cliente_id`) REFERENCES `usuario` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `envio_ibfk_2` FOREIGN KEY (`colmado_id`) REFERENCES `colmado` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_envio_producto` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `envio_producto`
---
-ALTER TABLE `envio_producto`
-  ADD CONSTRAINT `envio_producto_ibfk_1` FOREIGN KEY (`envio_id`) REFERENCES `envio` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `envio_producto_ibfk_2` FOREIGN KEY (`producto_id`) REFERENCES `producto` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `pedido`
---
-ALTER TABLE `pedido`
-  ADD CONSTRAINT `pedido_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `producto`
+-- Filtros para la tabla `producto`
 --
 ALTER TABLE `producto`
   ADD CONSTRAINT `fk_colmado` FOREIGN KEY (`id_colmado`) REFERENCES `colmado` (`id`);
