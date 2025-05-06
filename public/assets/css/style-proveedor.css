@@ -486,6 +486,10 @@ footer {
   overflow: visible; /* Cambiado de hidden a visible */
 }
 
+.alert {
+  text-align: center;
+}
+
 
 .producto h3 {
   font-size: 18px;
