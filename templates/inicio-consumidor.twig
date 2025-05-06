@@ -61,7 +61,7 @@ Inicio Consumidor - Mi Colmado
     </div>
 
     <!-- Contenedor de productos -->
-    <div class="product-container" id="product-table">
+    <div class="product-list">
         {% for producto in productos %}
             <div class="product-card">
                 <div class="img-product">
@@ -69,9 +69,11 @@ Inicio Consumidor - Mi Colmado
                 </div>
                 <h3>{{ producto.nombre }}</h3>
                 <p>Precio: ${{ producto.precio }}</p>
-                <p>Stock disponible: {{ producto.stock }}</p>
-                <input type="number" class="cantidad-producto" data-id="{{ producto.id }}" min="1" max="{{ producto.stock }}" value="1">
-                <button class="btn-comprar" data-id="{{ producto.id }}">Comprar</button>
+                <p>Stock: {{ producto.stock }}</p>
+                <div class="cantidad-container">
+                    <input type="number" class="cantidad-input" data-id="{{ producto.id }}" value="1" min="1" max="{{ producto.stock }}">
+                </div>
+                <button class="btn-agregar" data-id="{{ producto.id }}">Agregar al carrito</button>
             </div>
         {% endfor %}
     </div>
@@ -82,7 +84,7 @@ Inicio Consumidor - Mi Colmado
         // Función para aplicar el límite de elementos visibles
         function applyFilterLimit() {
             filterLimit = document.getElementById("filter-limit").value;
-            const products = document.querySelectorAll("#product-table .product-card");
+            const products = document.querySelectorAll(".product-list .product-card");
             let visibleCount = 0;
 
             products.forEach(product => {
@@ -98,7 +100,7 @@ Inicio Consumidor - Mi Colmado
         // Función para filtrar productos por nombre
         function filterTable() {
             const searchInput = document.getElementById("search-bar").value.toLowerCase();
-            const products = document.querySelectorAll("#product-table .product-card");
+            const products = document.querySelectorAll(".product-list .product-card");
             let visibleCount = 0;
 
             products.forEach(product => {
@@ -117,35 +119,42 @@ Inicio Consumidor - Mi Colmado
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const botonesComprar = document.querySelectorAll('.btn-comprar');
+            const botonesAgregar = document.querySelectorAll('.btn-agregar');
 
-            botonesComprar.forEach(boton => {
+            botonesAgregar.forEach(boton => {
                 boton.addEventListener('click', async () => {
                     const productoId = boton.getAttribute('data-id');
-                    const cantidadInput = document.querySelector(`.cantidad-producto[data-id="${productoId}"]`);
-                    const cantidad = cantidadInput ? cantidadInput.value : 1;
+                    const cantidadInput = document.querySelector(`.cantidad-input[data-id="${productoId}"]`);
+                    const cantidad = parseInt(cantidadInput.value);
+
+                    if (cantidad <= 0) {
+                        Swal.fire('Error', 'La cantidad debe ser mayor a 0.', 'error');
+                        return;
+                    }
 
                     try {
-                        const response = await fetch(`compra.php?id=${productoId}&cantidad=${cantidad}`, {
-                            method: 'GET',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
+                        const formData = new FormData();
+                        formData.append('accion', 'agregar');
+                        formData.append('id_producto', productoId);
+                        formData.append('cantidad', cantidad);
 
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
+                        const response = await fetch('inicio-consumidor.php', {
+                            method: 'POST',
+                            body: formData
+                        });
 
                         const data = await response.json();
 
                         if (data.success) {
-                            // Redirigir al carrito después de agregar el producto
-                            window.location.href = 'compra.php';
+                            Swal.fire('Éxito', data.message, 'success');
+                            // Actualizar el carrito dinámicamente si es necesario
+                            console.log('Carrito actualizado:', data.carrito);
                         } else {
-                            alert(data.message); // Mostrar mensaje de error si ocurre
+                            Swal.fire('Error', data.message, 'error');
                         }
                     } catch (error) {
                         console.error('Error:', error);
-                        alert('Hubo un problema al procesar tu solicitud.');
+                        Swal.fire('Error', 'Hubo un problema al procesar tu solicitud.', 'error');
                     }
                 });
             });

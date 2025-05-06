@@ -11,6 +11,79 @@ $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
     return '/assets/' . ltrim($path, '/');
 }));
 
+// Verificar si es una solicitud para agregar un producto al carrito
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'agregar') {
+    header('Content-Type: application/json');
+
+    $idProducto = intval($_POST['id_producto']);
+    $cantidad = intval($_POST['cantidad']);
+
+    // Validar parámetros
+    if ($idProducto <= 0 || $cantidad <= 0) {
+        echo json_encode(['success' => false, 'message' => 'Parámetros inválidos.']);
+        exit();
+    }
+
+    // Obtener información del producto desde la base de datos
+    $stmt = $conn->prepare("SELECT id, nombre, precio, stock, imagen FROM producto WHERE id = ?");
+    $stmt->bind_param("i", $idProducto);
+    $stmt->execute();
+    $producto = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$producto) {
+        echo json_encode(['success' => false, 'message' => 'Producto no encontrado.']);
+        exit();
+    }
+
+    // Verificar si hay suficiente stock
+    if ($cantidad > $producto['stock']) {
+        echo json_encode(['success' => false, 'message' => 'La cantidad solicitada excede el stock disponible.']);
+        exit();
+    }
+
+    // Agregar o actualizar el producto en el carrito
+    if (!isset($_SESSION['carrito'])) {
+        $_SESSION['carrito'] = [];
+    }
+
+    $encontrado = false;
+    foreach ($_SESSION['carrito'] as &$item) {
+        if ($item['id'] == $idProducto) {
+            $item['cantidad'] += $cantidad;
+            if ($item['cantidad'] > $producto['stock']) {
+                $item['cantidad'] = $producto['stock'];
+            }
+            $item['subtotal'] = $item['cantidad'] * $producto['precio'];
+            $encontrado = true;
+            break;
+        }
+    }
+
+    if (!$encontrado) {
+        $_SESSION['carrito'][] = [
+            'id' => $producto['id'],
+            'nombre' => $producto['nombre'],
+            'precio' => $producto['precio'],
+            'imagen' => $producto['imagen'], // Asegúrate de incluir la imagen
+            'cantidad' => $cantidad,
+            'subtotal' => $producto['precio'] * $cantidad,
+            'stock' => $producto['stock']
+        ];
+    }
+
+    // Calcular el total del carrito
+    $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Producto agregado al carrito.',
+        'carrito' => $_SESSION['carrito'],
+        'total' => $total
+    ]);
+    exit();
+}
+
 // Obtener lista de productos
 $productos = [];
 if (isset($_GET['search'])) {

@@ -35,21 +35,26 @@ Carrito de compras - Mi Colmado
     {% endif %}
 
     {% if carrito|length > 0 %}
-        <div class="product-container">
+        <div class="product-list">
             {% for item in carrito %}
                 <div class="product-card">
                     <div class="img-product">
-                        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" onerror="this.src='/public/assets/img/denied.webp'">
+                        <img src="{{ item.imagen starts with '/' or item.imagen starts with '../' ? item.imagen : '/uploads/' ~ item.imagen }}" 
+                             alt="{{ item.nombre }}" 
+                             onerror="this.src='/public/assets/img/denied.webp'; this.onerror=null;"
+                             class="img-producto">
                     </div>
-                    <h3>{{ item.nombre }}</h3>
-                    <p>Precio: ${{ item.precio }}</p>
-                    <div class="cantidad-container">
-                        <button class="btn-decrementar" data-id="{{ item.id }}" data-stock="{{ item.stock }}">-</button>
-                        <input type="number" class="cantidad-input" data-id="{{ item.id }}" value="{{ item.cantidad }}" min="1" max="{{ item.stock }}">
-                        <button class="btn-incrementar" data-id="{{ item.id }}" data-stock="{{ item.stock }}">+</button>
+                    <div class="product-details">
+                        <h3>{{ item.nombre }}</h3>
+                        <p>Precio: ${{ item.precio }}</p>
+                        <div class="cantidad-container">
+                            <button class="btn-decrementar" data-id="{{ item.id }}" data-stock="{{ item.stock }}">-</button>
+                            <input type="number" class="cantidad-input" data-id="{{ item.id }}" value="{{ item.cantidad }}" min="1" max="{{ item.stock }}">
+                            <button class="btn-incrementar" data-id="{{ item.id }}" data-stock="{{ item.stock }}">+</button>
+                        </div>
+                        <p>Subtotal: $<span class="subtotal" data-id="{{ item.id }}">{{ item.subtotal }}</span></p>
+                        <button class="btn-eliminar" data-id="{{ item.id }}">Eliminar</button>
                     </div>
-                    <p>Subtotal: $<span class="subtotal" data-id="{{ item.id }}">{{ item.subtotal }}</span></p>
-                    <button class="btn-eliminar" data-id="{{ item.id }}">Eliminar</button>
                 </div>
             {% endfor %}
         </div>
@@ -67,24 +72,23 @@ Carrito de compras - Mi Colmado
     {% endif %}
 </div>
 
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Manejar el botón de eliminar
+        // Manejar el botón de eliminar con SweetAlert
         document.querySelectorAll('.btn-eliminar').forEach(function (button) {
             button.addEventListener('click', function () {
                 const id = this.dataset.id;
 
                 // Mostrar SweetAlert para confirmar la eliminación
                 Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: 'Este producto será eliminado del carrito.',
-                    icon: 'warning',
+                    title: "¿Estás seguro?",
+                    text: "El producto será eliminado del carrito.",
+                    icon: "warning",
                     showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Eliminar",
+                    cancelButtonText: "Cancelar"
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Enviar solicitud al servidor para eliminar el producto
@@ -96,32 +100,92 @@ Carrito de compras - Mi Colmado
                             method: 'POST',
                             body: formData
                         })
-                        .then(response => response.text())
-                        .then(() => {
-                            // Eliminar el elemento del DOM
-                            const productCard = document.querySelector(`.btn-eliminar[data-id="${id}"]`).parentElement;
-                            productCard.remove();
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Eliminar el elemento del DOM
+                                const productCard = document.querySelector(`.btn-eliminar[data-id="${id}"]`).closest('.product-card');
+                                productCard.remove();
 
-                            // Actualizar totales
-                            actualizarTotales();
+                                // Actualizar totales
+                                actualizarTotales();
 
-                            Swal.fire(
-                                'Eliminado',
-                                'El producto ha sido eliminado del carrito.',
-                                'success'
-                            );
+                                Swal.fire("Eliminado", data.message, "success");
+                            } else {
+                                Swal.fire("Error", data.message, "error");
+                            }
                         })
                         .catch(error => {
-                            Swal.fire(
-                                'Error',
-                                'Hubo un problema al eliminar el producto.',
-                                'error'
-                            );
+                            console.error('Error:', error);
+                            Swal.fire("Error", "Hubo un problema al eliminar el producto.", "error");
                         });
                     }
                 });
             });
         });
+
+        // Manejar los botones de incrementar y decrementar cantidad
+        document.querySelectorAll('.btn-incrementar').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const stock = parseInt(this.dataset.stock);
+                const inputCantidad = document.querySelector(`.cantidad-input[data-id="${id}"]`);
+                let cantidadActual = parseInt(inputCantidad.value);
+
+                if (cantidadActual < stock) {
+                    cantidadActual++;
+                    inputCantidad.value = cantidadActual;
+
+                    actualizarCantidad(id, cantidadActual);
+                } else {
+                    Swal.fire("Error", "No puedes agregar más productos que el stock disponible.", "error");
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-decrementar').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const inputCantidad = document.querySelector(`.cantidad-input[data-id="${id}"]`);
+                let cantidadActual = parseInt(inputCantidad.value);
+
+                if (cantidadActual > 1) {
+                    cantidadActual--;
+                    inputCantidad.value = cantidadActual;
+
+                    actualizarCantidad(id, cantidadActual);
+                } else {
+                    Swal.fire("Error", "La cantidad no puede ser menor a 1.", "error");
+                }
+            });
+        });
+
+        // Actualizar cantidad en el servidor
+        function actualizarCantidad(id, cantidad) {
+            const formData = new FormData();
+            formData.append('accion', 'actualizar');
+            formData.append('id_producto', id);
+            formData.append('cantidad', cantidad);
+
+            fetch('compra.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar subtotal y total
+                    document.querySelector(`.subtotal[data-id="${id}"]`).textContent = data.subtotal;
+                    actualizarTotales();
+                } else {
+                    Swal.fire("Error", data.message, "error");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire("Error", "Hubo un problema al actualizar la cantidad.", "error");
+            });
+        }
 
         // Actualizar subtotal y total
         function actualizarTotales() {
@@ -131,6 +195,53 @@ Carrito de compras - Mi Colmado
             });
             document.getElementById('total').textContent = total.toFixed(2);
         }
+
+        // Manejar el formulario de finalizar compra
+        const formFinalizarCompra = document.getElementById('finalizar-compra-form');
+
+        formFinalizarCompra.addEventListener('submit', function (event) {
+            event.preventDefault(); // Evitar el envío normal del formulario
+
+            Swal.fire({
+                title: "¿Confirmar pedido?",
+                text: "Se enviará tu pedido como pendiente. Recibirás más información en tu WhatsApp.",
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Confirmar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Enviar el formulario al servidor
+                    const formData = new FormData(formFinalizarCompra);
+
+                    fetch('compra.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: "¡Pedido realizado!",
+                                text: "Tu pedido ha sido registrado con éxito.",
+                                icon: "success"
+                            }).then(() => {
+                                // Redirigir al inicio o limpiar el carrito
+                                window.location.href = 'inicio-consumidor.php';
+                            });
+                        } else {
+                            Swal.fire("Error", data.message, "error");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire("Error", "Hubo un problema al procesar tu pedido.", "error");
+                    });
+                }
+            });
+        });
     });
 </script>
 {% endblock %}

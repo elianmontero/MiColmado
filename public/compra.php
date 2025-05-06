@@ -22,9 +22,10 @@ if (!isset($_SESSION['carrito'])) {
 $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'finalizar') {
+    header('Content-Type: application/json');
+
     if (empty($_SESSION['carrito'])) {
-        $_SESSION['mensaje_error'] = 'El carrito está vacío.';
-        header("Location: compra.php");
+        echo json_encode(['success' => false, 'message' => 'El carrito está vacío.']);
         exit();
     }
 
@@ -34,15 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'finalizar') {
     // Insertar pedido
     $stmt = $conn->prepare("INSERT INTO pedido (id_usuario, total, estado) VALUES (?, ?, 'pendiente')");
     if (!$stmt) {
-        $_SESSION['mensaje_error'] = 'Error al preparar el pedido: ' . $conn->error;
-        header("Location: compra.php");
+        echo json_encode(['success' => false, 'message' => 'Error al preparar el pedido: ' . $conn->error]);
         exit();
     }
 
     $stmt->bind_param("id", $usuario_id, $total);
     if (!$stmt->execute()) {
-        $_SESSION['mensaje_error'] = 'Error al insertar el pedido: ' . $stmt->error;
-        header("Location: compra.php");
+        echo json_encode(['success' => false, 'message' => 'Error al insertar el pedido: ' . $stmt->error]);
         exit();
     }
 
@@ -50,72 +49,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'finalizar') {
     $stmt->close();
 
     // Insertar detalle del pedido
-    $stmtDetalle = $conn->prepare("INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, subtotal) VALUES (?, ?, ?, ?)");
+    $stmtDetalle = $conn->prepare("INSERT INTO pedido_producto (id_pedido, id_producto, cantidad, subtotal) VALUES (?, ?, ?, ?)");
     if (!$stmtDetalle) {
-        $_SESSION['mensaje_error'] = 'Error al preparar los productos del pedido: ' . $conn->error;
-        header("Location: compra.php");
+        echo json_encode(['success' => false, 'message' => 'Error al preparar los productos del pedido: ' . $conn->error]);
         exit();
     }
 
     foreach ($_SESSION['carrito'] as $item) {
-    $idProducto = $item['id'];
+        $idProducto = $item['id'];
         $cantidad = $item['cantidad'];
-        $precio = $item['precio'];
-        $subtotal = $cantidad * $precio;
+        $subtotal = $item['subtotal'];
 
         $stmtDetalle->bind_param("iiid", $pedido_id, $idProducto, $cantidad, $subtotal);
         if (!$stmtDetalle->execute()) {
-            $_SESSION['mensaje_error'] = 'Error al insertar producto del pedido: ' . $stmtDetalle->error;
-            header("Location: compra.php");
+            echo json_encode(['success' => false, 'message' => 'Error al insertar producto del pedido: ' . $stmtDetalle->error]);
             exit();
         }
+
+        // Descontar la cantidad comprada del stock
+        $stmtStock = $conn->prepare("UPDATE producto SET stock = stock - ? WHERE id = ?");
+        if (!$stmtStock) {
+            echo json_encode(['success' => false, 'message' => 'Error al preparar la actualización del stock: ' . $conn->error]);
+            exit();
+        }
+
+        $stmtStock->bind_param("ii", $cantidad, $idProducto);
+        if (!$stmtStock->execute()) {
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar el stock del producto: ' . $stmtStock->error]);
+            exit();
+        }
+        $stmtStock->close();
     }
     $stmtDetalle->close();
 
     // Limpiar el carrito después de confirmar el pedido
     $_SESSION['carrito'] = [];
-    $_SESSION['mensaje_exito'] = 'Pedido realizado con éxito.';
-    header("Location: compra.php");
+
+    echo json_encode(['success' => true, 'message' => 'Pedido realizado con éxito.']);
     exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'eliminar') {
-    $idProducto = $_POST['id_producto'];
+    header('Content-Type: application/json');
+
+    $idProducto = intval($_POST['id_producto']);
 
     // Verificar si el producto existe en el carrito
     foreach ($_SESSION['carrito'] as $index => $item) {
         if ($item['id'] == $idProducto) {
             unset($_SESSION['carrito'][$index]); // Eliminar el producto del carrito
             $_SESSION['carrito'] = array_values($_SESSION['carrito']); // Reindexar el array
-            $_SESSION['mensaje_exito'] = 'Producto eliminado del carrito.';
+            echo json_encode(['success' => true, 'message' => 'Producto eliminado del carrito.']);
+            exit();
+        }
+    }
+
+    echo json_encode(['success' => false, 'message' => 'Producto no encontrado en el carrito.']);
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'actualizar') {
+    header('Content-Type: application/json');
+
+    $idProducto = intval($_POST['id_producto']);
+    $cantidad = intval($_POST['cantidad']);
+
+    // Validar parámetros
+    if ($cantidad < 1) {
+        echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser menor a 1.']);
+        exit();
+    }
+
+    foreach ($_SESSION['carrito'] as &$item) {
+        if ($item['id'] == $idProducto) {
+            if ($cantidad > $item['stock']) {
+                echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser mayor al stock disponible.']);
+                exit();
+            }
+
+            $item['cantidad'] = $cantidad;
+            $item['subtotal'] = $cantidad * $item['precio'];
             break;
         }
     }
 
-    // Si no está en el carrito, agregarlo
-    if (!$productoEncontrado) {
-        // Obtener información del producto desde la base de datos
-        $stmt = $conn->prepare("SELECT id, nombre, precio FROM producto WHERE id = ?");
-        $stmt->bind_param("i", $idProducto);
-        $stmt->execute();
-        $resultado = $stmt->get_result();
-        $producto = $resultado->fetch_assoc();
+    $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
 
-        if ($producto) {
-            $_SESSION['carrito'][] = [
-                'id' => $producto['id'],
-                'nombre' => $producto['nombre'],
-                'precio' => $producto['precio'],
-                'cantidad' => $cantidad,
-                'subtotal' => $producto['precio'] * $cantidad
-            ];
-        }
-        $stmt->close();
-    }
-
-    // Responder con JSON para solicitudes AJAX
-    header('Content-Type: application/json');
-    echo json_encode(['success' => true, 'message' => 'Producto agregado al carrito.']);
+    echo json_encode([
+        'success' => true,
+        'subtotal' => number_format($item['subtotal'], 2),
+        'total' => number_format($total, 2)
+    ]);
     exit();
 }
 
