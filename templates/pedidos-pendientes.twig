@@ -20,28 +20,33 @@ Inicio Proveedor - Mi Colmado
 
 
 {% block content %}
-<h2>Pedidos Pendientes</h2>
+<h2 class="titulo-pedidos">Gestión de Pedidos</h2>
 
-<table>
+<table class="tabla-pedidos">
     <thead>
-        <tr>
-            <th>ID Pedido</th>
-            <th>Cliente</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+        <tr class="fila-encabezado">
+            <th class="columna-id">ID Pedido</th>
+            <th class="columna-cliente">Cliente</th>
+            <th class="columna-total">Total</th>
+            <th class="columna-estado">Estado</th>
+            <th class="columna-acciones">Acciones</th>
         </tr>
     </thead>
     <tbody>
         {% for pedido in pedidos %}
-            <tr>
-                <td>{{ pedido.id }}</td>
-                <td>{{ pedido.usuario_nombre }}</td>
-                <td>${{ pedido.total }}</td>
-                <td>{{ pedido.estado }}</td>
-                <td>
-                    <button class="btn-confirmar" data-id="{{ pedido.id }}">Confirmar</button>
-                    <button class="btn-enviar" data-id="{{ pedido.id }}">Marcar como Enviado</button>
+            <tr class="fila-pedido">
+                <td class="celda-id">{{ pedido.id }}</td>
+                <td class="celda-cliente">{{ pedido.usuario_nombre }}</td>
+                <td class="celda-total">${{ pedido.total }}</td>
+                <td class="celda-estado">{{ pedido.estado }}</td>
+                <td class="celda-acciones">
+                    {% if pedido.estado == 'pendiente' %}
+                        <button class="btn-estado" data-id="{{ pedido.id }}" data-estado="procesado">Procesar</button>
+                        <button class="btn-estado" data-id="{{ pedido.id }}" data-estado="cancelado">Cancelar</button>
+                    {% elseif pedido.estado == 'procesado' %}
+                        <button class="btn-estado" data-id="{{ pedido.id }}" data-estado="entregado">Entregar</button>
+                        <button class="btn-estado" data-id="{{ pedido.id }}" data-estado="cancelado">Cancelar</button>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
@@ -50,51 +55,33 @@ Inicio Proveedor - Mi Colmado
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const botonesConfirmar = document.querySelectorAll('.btn-confirmar');
-        const botonesEnviar = document.querySelectorAll('.btn-enviar');
+        const botonesEstado = document.querySelectorAll('.btn-estado');
 
-        botonesConfirmar.forEach(boton => {
+        botonesEstado.forEach(boton => {
             boton.addEventListener('click', async () => {
                 const pedidoId = boton.getAttribute('data-id');
+                const nuevoEstado = boton.getAttribute('data-estado');
+
                 try {
-                    const response = await fetch(`actualizar-pedido.php?id=${pedidoId}&estado=confirmado`, {
+                    const response = await fetch(`actualizar-pedido.php?id=${pedidoId}&estado=${nuevoEstado}`, {
                         method: 'GET',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     const data = await response.json();
                     if (data.success) {
-                        swal("Pedido confirmado", "El pedido ha sido confirmado.", "success").then(() => {
+                        Swal.fire({
+                            title: "Estado actualizado",
+                            text: `El pedido ha sido marcado como ${nuevoEstado}.`,
+                            icon: "success"
+                        }).then(() => {
                             location.reload();
                         });
                     } else {
-                        swal("Error", data.message, "error");
+                        Swal.fire("Error", data.message, "error");
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
-                }
-            });
-        });
-
-        botonesEnviar.forEach(boton => {
-            boton.addEventListener('click', async () => {
-                const pedidoId = boton.getAttribute('data-id');
-                try {
-                    const response = await fetch(`actualizar-pedido.php?id=${pedidoId}&estado=enviado`, {
-                        method: 'GET',
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        swal("Pedido enviado", "El pedido ha sido marcado como enviado.", "success").then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        swal("Error", data.message, "error");
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    swal("Error", "Hubo un problema al procesar tu solicitud.", "error");
+                    Swal.fire("Error", "Hubo un problema al procesar tu solicitud.", "error");
                 }
             });
         });

@@ -212,6 +212,24 @@ label {
 
 .container-btn {
   text-align: center;
+  margin: 30px 0;
+}
+
+.container-btn button {
+  background-color: #56a55a;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.container-btn button:hover {
+  background-color: #3a7036;
+  transform: scale(1.05);
 }
 
 .tg {
@@ -606,31 +624,101 @@ footer {
 
 
 
-@media (max-width: 768px) {
-  .navbar-menu {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .menu {
-    width: 100%;
+/* Estilo para la tabla */
+.tabla-pedidos {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
     text-align: center;
-    padding: 10px 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabla-pedidos th, .tabla-pedidos td {
+    padding: 15px;
+    border: 1px solid #ddd;
+}
+
+.tabla-pedidos th {
+    background-color: #56a55a;
+    color: white;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+.tabla-pedidos td {
+    background-color: #f9f9f9;
+    color: #333;
+    font-size: 1rem;
+}
+
+.tabla-pedidos tr:nth-child(even) td {
+    background-color: #f0fcf4;
+}
+
+.tabla-pedidos tr:hover td {
+    background-color: #e8f5e9;
+}
+
+/* Estilo para los botones */
+.btn-confirmar, .btn-enviar {
+    background-color: #56a55a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+
+.btn-confirmar {
+  margin-right: 40px;
+}
+
+.btn-confirmar:hover, .btn-enviar:hover {
+    background-color: #3a7036;
+    transform: scale(1.05);
+}
+
+.btn-estado {
+    background-color: #56a55a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-estado:hover {
+    background-color: #3a7036;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .menu {
+    flex-direction: column;
+    align-items: center;
   }
 
   .menu li {
-    display: block;
     margin: 10px 0;
   }
 
-  .search-container {
-    width: 100%;
-    justify-content: center;
-    margin-top: 10px;
+  .carousel-item img {
+    height: 400px;
   }
 
-  .search-input {
+  .slider-overlay h1 {
+    font-size: 1.8rem;
+  }
+
+  .container-btn button {
     width: 80%;
+    font-size: 1rem;
   }
 }
 
