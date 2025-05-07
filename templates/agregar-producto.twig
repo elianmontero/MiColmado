@@ -59,7 +59,7 @@ Agregar Producto - Mi Colmado
   </div>
 
   <!-- Sección de búsqueda de productos -->
-  <section>
+  <section id="busqueda-productos" class="busqueda-productos">
     <h2>Busca productos de República Dominicana para agregar a tu colmado.</h2>
     <div class="filters2">
       <div class="search-container">
@@ -94,43 +94,121 @@ Agregar Producto - Mi Colmado
     }
   });
 
-  // AJAX del formulario
+  // AJAX del formulario con SweetAlert
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('agregar-producto-form');
-    const mensajePopup = document.getElementById('mensaje-popup');
-    const mensajeTexto = document.getElementById('mensaje-texto');
-    const mensajeIcono = document.getElementById('mensaje-icono');
 
     form.addEventListener('submit', function(event) {
-      event.preventDefault();
-      const formData = new FormData(form);
-      fetch('agregar-producto.php', {
-        method: 'POST',
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          mostrarMensaje('Producto agregado correctamente.', 'success');
-          form.reset();
-          document.getElementById('preview').style.display = 'none';
-        } else {
-          mostrarMensaje(data.message, 'error');
-        }
-      })
-      .catch(() => mostrarMensaje('Error en la comunicación con el servidor.', 'error'));
+        event.preventDefault();
+        const formData = new FormData(form);
 
-      function mostrarMensaje(text, tipo) {
-        mensajeTexto.textContent = text;
-        mensajePopup.classList.toggle('success', tipo === 'success');
-        mensajePopup.classList.toggle('error', tipo !== 'success');
-        mensajeIcono.src = tipo === 'success'
-          ? '/public/assets/img/succes.webp'
-          : '/public/assets/img/denied.webp';
-        mensajePopup.style.display = 'block';
-        setTimeout(() => mensajePopup.style.display = 'none', 3000);
-      }
+        fetch('agregar-producto.php', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    title: 'Éxito',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    form.reset();
+                    document.getElementById('preview').style.display = 'none';
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .catch(() => {
+            Swal.fire({
+                title: 'Error',
+                text: 'Error en la comunicación con el servidor.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    });
+
+    // Búsqueda de productos y agregar funcionalidad
+    document.getElementById('buscar-btn').addEventListener('click', function() {
+        const busqueda = document.getElementById('busqueda').value;
+
+        fetch(`buscar-productos.php?query=${encodeURIComponent(busqueda)}`)
+            .then(res => res.json())
+            .then(data => {
+                const resultados = document.getElementById('resultados');
+                resultados.innerHTML = '';
+
+                if (data.success && data.productos.length > 0) {
+                    data.productos.forEach(producto => {
+                        const productoCard = document.createElement('div');
+                        productoCard.classList.add('producto-card');
+                        productoCard.innerHTML = `
+                            <h3>${producto.nombre}</h3>
+                            <p>Precio: $${producto.precio}</p>
+                            <button class="btn-agregar" data-id="${producto.id}">Agregar</button>
+                        `;
+                        resultados.appendChild(productoCard);
+                    });
+
+                    document.querySelectorAll('.btn-agregar').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const idProducto = this.dataset.id;
+
+                            fetch('agregar-producto.php', {
+                                method: 'POST',
+                                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                                body: JSON.stringify({ id_producto: idProducto })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: 'Éxito',
+                                        text: data.message,
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: data.message,
+                                        icon: 'error',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            })
+                            .catch(() => {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Error en la comunicación con el servidor.',
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            });
+                        });
+                    });
+                } else {
+                    resultados.innerHTML = '<p>No se encontraron productos.</p>';
+                }
+            })
+            .catch(() => {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error en la comunicación con el servidor.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
     });
   });
 </script>

@@ -64,12 +64,22 @@ try {
                 throw new Exception('Error SQL: ' . $stmt->error);
             }
         } elseif (strpos($contentType, 'multipart/form-data') !== false) {
-            // Procesar datos enviados desde la API o formulario clásico
+            // Procesar datos enviados desde el formulario clásico
             $nombre = trim($_POST['nombre'] ?? '');
             $imagen = $_FILES['imagen'] ?? null;
 
             if (empty($nombre) || !$imagen || $imagen['error'] !== UPLOAD_ERR_OK) {
                 throw new Exception('Datos incompletos o imagen inválida.');
+            }
+
+            // Verificar si el producto ya existe en el colmado
+            $stmt = $conn->prepare("SELECT id FROM producto WHERE nombre = ? AND id_colmado = ?");
+            $stmt->bind_param("si", $nombre, $id_colmado);
+            $stmt->execute();
+            $stmt->store_result();
+
+            if ($stmt->num_rows > 0) {
+                throw new Exception('El producto ya existe en tu colmado.');
             }
 
             // Generar un nombre único para la imagen

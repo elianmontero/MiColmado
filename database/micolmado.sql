@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Servidor: 127.0.0.1
--- Tiempo de generación: 06-05-2025 a las 05:53:10
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.1.25
+-- Host: 127.0.0.1
+-- Generation Time: May 07, 2025 at 05:23 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.1.25
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `micolmado`
+-- Database: `micolmado`
 --
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `colmado`
+-- Table structure for table `colmado`
 --
 
 CREATE TABLE `colmado` (
@@ -35,7 +35,7 @@ CREATE TABLE `colmado` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `colmado`
+-- Dumping data for table `colmado`
 --
 
 INSERT INTO `colmado` (`id`, `nombre_colmado`, `direccion`, `id_usuario`) VALUES
@@ -44,34 +44,67 @@ INSERT INTO `colmado` (`id`, `nombre_colmado`, `direccion`, `id_usuario`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `producto`
+-- Table structure for table `detalle_pedido`
+--
+
+CREATE TABLE `detalle_pedido` (
+  `id` int(11) NOT NULL,
+  `id_pedido` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL,
+  `subtotal` decimal(10,2) GENERATED ALWAYS AS (`cantidad` * `precio_unitario`) STORED
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pedido`
+--
+
+CREATE TABLE `pedido` (
+  `id` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
+  `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
+  `estado` enum('pendiente','procesado','entregado','cancelado') DEFAULT 'pendiente',
+  `total` decimal(10,2) NOT NULL,
+  `direccion_envio` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `producto`
 --
 
 CREATE TABLE `producto` (
   `id` int(11) NOT NULL,
   `nombre` varchar(100) NOT NULL,
-  `marca` varchar(100) NOT NULL,
   `precio` float NOT NULL,
   `stock` int(11) NOT NULL DEFAULT 0,
   `imagen` varchar(255) DEFAULT NULL,
-  `id_colmado` int(11) NOT NULL
+  `id_colmado` int(11) NOT NULL,
+  `fecha_modificacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `producto`
+-- Dumping data for table `producto`
 --
 
-INSERT INTO `producto` (`id`, `nombre`, `marca`, `precio`, `stock`, `imagen`, `id_colmado`) VALUES
-(3, 'Pan tostado integral', '', 120, 25, '../public/assets/imagenes-productos/producto.jpg', 5),
-(4, 'Digestive Chocolate', '', 75, 30, '/public/uploads/img_681169b0652cd4.46444630.jpg', 5),
-(5, 'Krit krititas galletas saladas', '', 50, 10, '/public/uploads/img_681169b3a405b7.24754230.jpg', 5),
-(6, 'Coco', '', 35, 10, '/public/uploads/img_68116b75e255c1.18890848.png', 5),
-(7, 'Agua de bronchales', '', 20, 9, '/public/uploads/img_68116bce4faca2.10819144.jpg', 5);
+INSERT INTO `producto` (`id`, `nombre`, `precio`, `stock`, `imagen`, `id_colmado`, `fecha_modificacion`) VALUES
+(1, 'Digestive Chocolate', 100, 31, '/public/uploads/img_6812332889d262.58422897.jpg', 5, '2025-04-30 14:27:03'),
+(2, 'Pan espelta integral', 125, 30, '/public/uploads/img_681b70b02fc530.65622389.jpg', 5, '2025-05-07 14:48:26'),
+(3, 'Pan tostado', 70, 30, '/public/uploads/img_681b70b5d7bb17.09031691.jpg', 5, '2025-05-07 14:52:22'),
+(4, 'Pan tostado Cereales y semillas', 200, 11, '/public/uploads/img_681b70b87e8650.87269135.jpg', 5, '2025-05-07 14:53:04'),
+(5, 'Pan tostado integral', 80, 2, '/public/uploads/img_681b70bb0c2191.98363597.jpg', 5, '2025-05-07 14:53:23'),
+(6, 'Pan de molde blanco natural rústico', 80, 5, '/public/uploads/img_681b70c046d963.49133462.jpg', 5, '2025-05-07 14:53:41'),
+(7, 'Biscuits Nutella x3 biscuits fourrés - 41,4g', 50, 55, '/public/uploads/img_681b72a5158398.14988169.jpg', 5, '2025-05-07 14:53:53'),
+(8, 'Ronditas 32% Chocolate', 80, 13, '/public/uploads/img_681b72ab522bf6.21806784.jpg', 5, '2025-05-07 14:54:06');
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `usuario`
+-- Table structure for table `usuario`
 --
 
 CREATE TABLE `usuario` (
@@ -86,7 +119,7 @@ CREATE TABLE `usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `usuario`
+-- Dumping data for table `usuario`
 --
 
 INSERT INTO `usuario` (`id`, `nombre_completo`, `direccion`, `telefono`, `email`, `contraseña`, `cedula`, `tipo_usuario`) VALUES
@@ -94,25 +127,40 @@ INSERT INTO `usuario` (`id`, `nombre_completo`, `direccion`, `telefono`, `email`
 (13, 'Elian Montero', 'Calle J3 esquina Francisco Sánchez #11', '8091176127', 'elian-consumidor04@gmail.com', '$2y$10$vYRd44T5osGn0yc6WMmBEu4BPKf75I2.kMzUmXEXvCAHKFyrS/wMa', NULL, 'Consumidor');
 
 --
--- Índices para tablas volcadas
+-- Indexes for dumped tables
 --
 
 --
--- Indices de la tabla `colmado`
+-- Indexes for table `colmado`
 --
 ALTER TABLE `colmado`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_nombre_colmadero` (`id_usuario`);
 
 --
--- Indices de la tabla `producto`
+-- Indexes for table `detalle_pedido`
+--
+ALTER TABLE `detalle_pedido`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_pedido` (`id_pedido`),
+  ADD KEY `id_producto` (`id_producto`);
+
+--
+-- Indexes for table `pedido`
+--
+ALTER TABLE `pedido`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_usuario` (`id_usuario`);
+
+--
+-- Indexes for table `producto`
 --
 ALTER TABLE `producto`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_colmado` (`id_colmado`);
 
 --
--- Indices de la tabla `usuario`
+-- Indexes for table `usuario`
 --
 ALTER TABLE `usuario`
   ADD PRIMARY KEY (`id`),
@@ -120,39 +168,64 @@ ALTER TABLE `usuario`
   ADD UNIQUE KEY `cedula` (`cedula`);
 
 --
--- AUTO_INCREMENT de las tablas volcadas
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT de la tabla `colmado`
+-- AUTO_INCREMENT for table `colmado`
 --
 ALTER TABLE `colmado`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT de la tabla `producto`
+-- AUTO_INCREMENT for table `detalle_pedido`
 --
-ALTER TABLE `producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+ALTER TABLE `detalle_pedido`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `usuario`
+-- AUTO_INCREMENT for table `pedido`
+--
+ALTER TABLE `pedido`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `producto`
+--
+ALTER TABLE `producto`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `usuario`
 --
 ALTER TABLE `usuario`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- Restricciones para tablas volcadas
+-- Constraints for dumped tables
 --
 
 --
--- Filtros para la tabla `colmado`
+-- Constraints for table `colmado`
 --
 ALTER TABLE `colmado`
   ADD CONSTRAINT `fk_nombre_colmadero` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `producto`
+-- Constraints for table `detalle_pedido`
+--
+ALTER TABLE `detalle_pedido`
+  ADD CONSTRAINT `detalle_pedido_ibfk_1` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `detalle_pedido_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `pedido`
+--
+ALTER TABLE `pedido`
+  ADD CONSTRAINT `pedido_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `producto`
 --
 ALTER TABLE `producto`
   ADD CONSTRAINT `fk_colmado` FOREIGN KEY (`id_colmado`) REFERENCES `colmado` (`id`);

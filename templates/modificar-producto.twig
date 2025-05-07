@@ -72,6 +72,11 @@ Modificar Producto - Mi Colmado
             .then(data => {
                 if (data.success) {
                     mostrarMensaje('Producto modificado correctamente.', 'success');
+
+                    // Redirigir a la página de ver productos después de 3 segundos
+                    setTimeout(() => {
+                        window.location.href = 'ver-productos.php';
+                    }, 2000);
                     form.reset();
                 } else {
                     mostrarMensaje('Ocurrió un error al procesar el formulario. Inténtalo de nuevo.', 'error');

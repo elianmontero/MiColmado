@@ -114,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'actualizar') 
     $idProducto = intval($_POST['id_producto']);
     $cantidad = intval($_POST['cantidad']);
 
-    // Validar parámetros
     if ($cantidad < 1) {
         echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser menor a 1.']);
         exit();
@@ -126,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'actualizar') 
                 echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser mayor al stock disponible.']);
                 exit();
             }
-
             $item['cantidad'] = $cantidad;
             $item['subtotal'] = $cantidad * $item['precio'];
             break;

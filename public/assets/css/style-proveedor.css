@@ -492,6 +492,24 @@ footer {
   padding: 20px;
 }
 
+#resultados button {
+  background-color: #56a55a;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#resultados button:hover {
+  background-color: #3a7036;
+  transform: scale(1.05);
+}
+
+
 .producto {
   border: 1px solid #ddd;
   padding: 20px;
@@ -502,6 +520,13 @@ footer {
   margin-bottom: 20px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   overflow: visible; /* Cambiado de hidden a visible */
+}
+
+#productos {
+  text-align: center;
+  text-decoration: none;
+  margin: 0 auto;
+  color: #28a745;
 }
 
 .alert {

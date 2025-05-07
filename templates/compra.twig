@@ -59,15 +59,28 @@ Carrito de compras - Mi Colmado
             {% endfor %}
         </div>
 
-        <h3>Total: $<span id="total">{{ total }}</span></h3>
+        <h3>Resumen de la compra</h3>
+        <div class="total-container">
+            {% for item in carrito %}
+                {% set total = item.precio * item.cantidad %}
+            {% endfor %}
+            {% for item in carrito %}
+                {% set total = total + (item.precio * item.cantidad) %}
+            {% endfor %}
+            {% set total = total|number_format(2, '.', '') %}
+            <p>Productos en el carrito: {{ carrito|length }}</p>
+            <p>Descuento: $<span class="subtotal">{{ (total * 0.10)|number_format(2, '.', '') }}</span></p>
+            <p>Envío: $<span class="subtotal">{{ (total * 0.05)|number_format(2, '.', '') }}</span></p>
+            <p>Total: $<span class="subtotal">{{ (total * 0.95)|number_format(2, '.', '') }}</span></p>
 
-        <form id="finalizar-compra-form" method="POST" action="compra.php">
-            <input type="hidden" name="accion" value="finalizar">
-            <button type="submit" id="btn-finalizar" class="btn-finalizar">Finalizar Compra</button>
-        </form>
+            <form id="finalizar-compra-form" method="POST" action="compra.php">
+                <input type="hidden" name="accion" value="finalizar_compra">
+                <button type="submit" class="btn-finalizar">Finalizar Compra</button>
+            </form>
+        </div>
     {% else %}
         <div class="carrito-msj">
-            <p>Tu carrito está vacío. <a href="inicio-consumidor.php">Agregar productos</a>.</p>
+            <p>Tu carrito está vacío. <a href="inicio-consumidor.php">Agrega productos desde aquí...</a>.</p>
         </div>
     {% endif %}
 </div>
@@ -79,7 +92,6 @@ Carrito de compras - Mi Colmado
             button.addEventListener('click', function () {
                 const id = this.dataset.id;
 
-                // Mostrar SweetAlert para confirmar la eliminación
                 Swal.fire({
                     title: "¿Estás seguro?",
                     text: "El producto será eliminado del carrito.",
@@ -91,7 +103,6 @@ Carrito de compras - Mi Colmado
                     cancelButtonText: "Cancelar"
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Enviar solicitud al servidor para eliminar el producto
                         const formData = new FormData();
                         formData.append('accion', 'eliminar');
                         formData.append('id_producto', id);
@@ -103,13 +114,9 @@ Carrito de compras - Mi Colmado
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // Eliminar el elemento del DOM
                                 const productCard = document.querySelector(`.btn-eliminar[data-id="${id}"]`).closest('.product-card');
                                 productCard.remove();
-
-                                // Actualizar totales
                                 actualizarTotales();
-
                                 Swal.fire("Eliminado", data.message, "success");
                             } else {
                                 Swal.fire("Error", data.message, "error");
@@ -174,8 +181,12 @@ Carrito de compras - Mi Colmado
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Actualizar subtotal y total
-                    document.querySelector(`.subtotal[data-id="${id}"]`).textContent = data.subtotal;
+                    const subtotalElement = document.querySelector(`.subtotal[data-id="${id}"]`);
+                    if (subtotalElement) {
+                        subtotalElement.textContent = data.subtotal;
+                    } else {
+                        console.warn(`El producto con ID ${id} ya no existe en el DOM.`);
+                    }
                     actualizarTotales();
                 } else {
                     Swal.fire("Error", data.message, "error");
@@ -190,10 +201,24 @@ Carrito de compras - Mi Colmado
         // Actualizar subtotal y total
         function actualizarTotales() {
             let total = 0;
-            document.querySelectorAll('.subtotal').forEach(function (subtotalElement) {
-                total += parseFloat(subtotalElement.textContent);
-            });
-            document.getElementById('total').textContent = total.toFixed(2);
+            const productList = document.querySelector('.product-list');
+            const totalElement = document.getElementById('total');
+
+            // Verificar si hay productos en la lista
+            if (productList && productList.children.length > 0) {
+                document.querySelectorAll('.subtotal').forEach(function (subtotalElement) {
+                    total += parseFloat(subtotalElement.textContent);
+                });
+
+                if (totalElement) {
+                    totalElement.textContent = total.toFixed(2);
+                }
+            } else {
+                // Si no hay productos, ocultar o establecer el total en 0
+                if (totalElement) {
+                    totalElement.textContent = '0.00';
+                }
+            }
         }
 
         // Manejar el formulario de finalizar compra

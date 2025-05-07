@@ -147,7 +147,7 @@ input:focus {
 }
 
 .search-container {
-  margin-left: 170px;
+  margin-left: 80px;
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -179,13 +179,13 @@ input:focus {
 /* Contenedor de productos */
 .product-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Ajustar columnas automáticamente */
-  gap: 15px;
-  padding: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Ajustar columnas automáticamente */
   justify-content: center;
   margin: 0 auto;
+  margin-bottom: 40px;
   width: 100%;
 }
+
 
 /* Tarjeta de producto */
 .product-card {
@@ -201,9 +201,11 @@ input:focus {
   justify-content: flex-start;
   text-align: center;
   padding: 25px 0px 15px 0px;
-  margin-left: 25px;
+  margin: 0 auto;
+  margin-top: 25px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 
 .cantidad-input {
   border: none;
@@ -224,12 +226,12 @@ input:focus {
   overflow: hidden; /* Ocultar contenido que sobresalga */
 }
 
+
 /* Imagen del producto */
 .product-card img {
-  max-width: 100%;
+  width: 100%;
   max-height: 100%;
   object-fit: contain; /* Ajustar imagen dentro del contenedor */
-  border-radius: 8px 8px 0 0;
   margin-bottom: 10px;
 }
 
@@ -270,6 +272,16 @@ input:focus {
 .product-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.total-container {
+  display: block;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  margin-bottom: 40px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
 }
 
 /* Botón para eliminar productos */
@@ -357,12 +369,23 @@ input:focus {
 
 .carrito-msj {
   width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
+  margin: 200px auto;
   justify-content: center;
   text-align: center;
   background-color: #fff;
   color: #56a55a;
+  font-size: 1.3rem;
+}
+
+.carrito-msj a {
+  text-decoration: none;
+  color: #56a55a;
+  font-weight: bold;
+}
+
+.carrito-msj a:hover {
+  text-decoration: none;
+  color: #2C6B38;
 }
 
 footer {
