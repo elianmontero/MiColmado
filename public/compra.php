@@ -3,154 +3,160 @@ include 'config.php';
 session_start();
 require_once '../vendor/autoload.php';
 
+// Cargar Twig
+$loader = new \Twig\Loader\FilesystemLoader('../templates');
+$twig = new \Twig\Environment($loader);
+$twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
+    return '/assets/' . ltrim($path, '/');
+}));
+
+// Asegurar autenticación
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: ../login.php");
     exit();
 }
 
-$loader = new \Twig\Loader\FilesystemLoader('../templates');
-$twig = new \Twig\Environment($loader);
-
-$twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
-    return '/assets/' . ltrim($path, '/');
-}));
-
+// Inicializar carrito
 if (!isset($_SESSION['carrito'])) {
     $_SESSION['carrito'] = [];
 }
 
-$total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'finalizar') {
-    header('Content-Type: application/json');
-
-    if (empty($_SESSION['carrito'])) {
-        echo json_encode(['success' => false, 'message' => 'El carrito está vacío.']);
-        exit();
-    }
-
-    $usuario_id = $_SESSION['usuario_id'];
+try {
+    // Calcular total actual
     $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
+    $total = floatval($total);
 
-    // Insertar pedido
-    $stmt = $conn->prepare("INSERT INTO pedido (id_usuario, total, estado) VALUES (?, ?, 'pendiente')");
-    if (!$stmt) {
-        echo json_encode(['success' => false, 'message' => 'Error al preparar el pedido: ' . $conn->error]);
+    // Función auxiliar para respuestas JSON AJAX
+    function responder($array) {
+        header('Content-Type: application/json');
+        echo json_encode($array);
         exit();
     }
 
-    $stmt->bind_param("id", $usuario_id, $total);
-    if (!$stmt->execute()) {
-        echo json_encode(['success' => false, 'message' => 'Error al insertar el pedido: ' . $stmt->error]);
-        exit();
-    }
+    // Detectar petición AJAX
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
-    $pedido_id = $stmt->insert_id;
-    $stmt->close();
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isAjax) {
+        $accion = $_POST['accion'] ?? '';
 
-    // Insertar detalle del pedido
-    $stmtDetalle = $conn->prepare("INSERT INTO pedido_producto (id_pedido, id_producto, cantidad, subtotal) VALUES (?, ?, ?, ?)");
-    if (!$stmtDetalle) {
-        echo json_encode(['success' => false, 'message' => 'Error al preparar los productos del pedido: ' . $conn->error]);
-        exit();
-    }
-
-    foreach ($_SESSION['carrito'] as $item) {
-        $idProducto = $item['id'];
-        $cantidad = $item['cantidad'];
-        $subtotal = $item['subtotal'];
-
-        $stmtDetalle->bind_param("iiid", $pedido_id, $idProducto, $cantidad, $subtotal);
-        if (!$stmtDetalle->execute()) {
-            echo json_encode(['success' => false, 'message' => 'Error al insertar producto del pedido: ' . $stmtDetalle->error]);
-            exit();
-        }
-
-        // Descontar la cantidad comprada del stock
-        $stmtStock = $conn->prepare("UPDATE producto SET stock = stock - ? WHERE id = ?");
-        if (!$stmtStock) {
-            echo json_encode(['success' => false, 'message' => 'Error al preparar la actualización del stock: ' . $conn->error]);
-            exit();
-        }
-
-        $stmtStock->bind_param("ii", $cantidad, $idProducto);
-        if (!$stmtStock->execute()) {
-            echo json_encode(['success' => false, 'message' => 'Error al actualizar el stock del producto: ' . $stmtStock->error]);
-            exit();
-        }
-        $stmtStock->close();
-    }
-    $stmtDetalle->close();
-
-    // Limpiar el carrito después de confirmar el pedido
-    $_SESSION['carrito'] = [];
-
-    echo json_encode(['success' => true, 'message' => 'Pedido realizado con éxito.']);
-    exit();
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'eliminar') {
-    header('Content-Type: application/json');
-
-    $idProducto = intval($_POST['id_producto']);
-
-    // Verificar si el producto existe en el carrito
-    foreach ($_SESSION['carrito'] as $index => $item) {
-        if ($item['id'] == $idProducto) {
-            unset($_SESSION['carrito'][$index]); // Eliminar el producto del carrito
-            $_SESSION['carrito'] = array_values($_SESSION['carrito']); // Reindexar el array
-            echo json_encode(['success' => true, 'message' => 'Producto eliminado del carrito.']);
-            exit();
-        }
-    }
-
-    echo json_encode(['success' => false, 'message' => 'Producto no encontrado en el carrito.']);
-    exit();
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['accion'] === 'actualizar') {
-    header('Content-Type: application/json');
-
-    $idProducto = intval($_POST['id_producto']);
-    $cantidad = intval($_POST['cantidad']);
-
-    if ($cantidad < 1) {
-        echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser menor a 1.']);
-        exit();
-    }
-
-    foreach ($_SESSION['carrito'] as &$item) {
-        if ($item['id'] == $idProducto) {
-            if ($cantidad > $item['stock']) {
-                echo json_encode(['success' => false, 'message' => 'La cantidad no puede ser mayor al stock disponible.']);
-                exit();
+        // FINALIZAR COMPRA
+        if ($accion === 'finalizar') {
+            if (empty($_SESSION['carrito'])) {
+                responder(['success' => false, 'message' => 'El carrito está vacío.']);
             }
-            $item['cantidad'] = $cantidad;
-            $item['subtotal'] = $cantidad * $item['precio'];
-            break;
+
+            $usuario_id  = $_SESSION['usuario_id'];
+            $metodo_pago = $_POST['metodo_pago'] ?? 'efectivo';
+            $direccion   = trim($_POST['direccion'] ?? '');
+            $metodo_pago = in_array($metodo_pago, ['efectivo', 'tarjeta']) ? $metodo_pago : 'efectivo';
+
+            if ($direccion === '') {
+                responder(['success' => false, 'message' => 'La dirección es obligatoria.']);
+            }
+
+            $total = floatval(array_sum(array_column($_SESSION['carrito'], 'subtotal')));
+
+            // Insertar pedido
+            $stmt = $conn->prepare(
+                "INSERT INTO pedido (id_usuario, total, estado, metodo_pago, direccion)
+                 VALUES (?, ?, 'pendiente', ?, ?)"
+            );
+            if (!$stmt) {
+                responder(['success' => false, 'message' => 'Ocurrió un error al procesar el pedido.']);
+            }
+            $stmt->bind_param("idss", $usuario_id, $total, $metodo_pago, $direccion);
+            if (!$stmt->execute()) {
+                responder(['success' => false, 'message' => 'No se pudo registrar el pedido.']);
+            }
+            $pedido_id = $stmt->insert_id;
+            $stmt->close();
+
+            // Insertar detalle de pedido
+            $stmtDet = $conn->prepare(
+                "INSERT INTO pedido_producto (id_pedido, id_producto, cantidad, subtotal) VALUES (?, ?, ?, ?)"
+            );
+            if (!$stmtDet) {
+                responder(['success' => false, 'message' => 'Error al procesar los productos.']);
+            }
+
+            foreach ($_SESSION['carrito'] as $item) {
+                $stmtDet->bind_param("iiid", $pedido_id, $item['id'], $item['cantidad'], $item['subtotal']);
+                if (!$stmtDet->execute()) {
+                    responder(['success' => false, 'message' => 'No se pudo agregar un producto al pedido.']);
+                }
+
+                // Actualizar stock
+                $stmtStock = $conn->prepare("UPDATE producto SET stock = stock - ? WHERE id = ?");
+                if (!$stmtStock) {
+                    responder(['success' => false, 'message' => 'Error al actualizar el inventario.']);
+                }
+                $stmtStock->bind_param("ii", $item['cantidad'], $item['id']);
+                $stmtStock->execute();
+                $stmtStock->close();
+            }
+            $stmtDet->close();
+
+            $_SESSION['carrito'] = [];
+
+            responder(['success' => true, 'message' => 'Pedido realizado con éxito.']);
+        }
+
+        // ELIMINAR PRODUCTO
+        if ($accion === 'eliminar') {
+            $idProducto = intval($_POST['id_producto']);
+            foreach ($_SESSION['carrito'] as $i => $prod) {
+                if ($prod['id'] === $idProducto) {
+                    unset($_SESSION['carrito'][$i]);
+                    $_SESSION['carrito'] = array_values($_SESSION['carrito']);
+                    responder(['success' => true, 'message' => 'Producto eliminado del carrito.']);
+                }
+            }
+            responder(['success' => false, 'message' => 'Producto no encontrado en el carrito.']);
+        }
+
+        // ACTUALIZAR CANTIDAD
+        if ($accion === 'actualizar') {
+            $idProducto = intval($_POST['id_producto']);
+            $cantidad   = intval($_POST['cantidad']);
+            if ($cantidad < 1) {
+                responder(['success' => false, 'message' => 'La cantidad no puede ser menor a 1.']);
+            }
+            foreach ($_SESSION['carrito'] as &$prod) {
+                if ($prod['id'] === $idProducto) {
+                    if ($cantidad > $prod['stock']) {
+                        responder(['success' => false, 'message' => 'Supera el stock disponible.']);
+                    }
+                    $prod['cantidad'] = $cantidad;
+                    $prod['subtotal'] = $cantidad * $prod['precio'];
+                    break;
+                }
+            }
+            $nuevoTotal = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
+            responder([
+                'success'  => true,
+                'subtotal' => number_format($prod['subtotal'], 2),
+                'total'    => number_format($nuevoTotal, 2)
+            ]);
         }
     }
 
-    $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
-
-    echo json_encode([
-        'success' => true,
-        'subtotal' => number_format($item['subtotal'], 2),
-        'total' => number_format($total, 2)
+    // Renderizar página (no AJAX)
+    echo $twig->render('compra.twig', [
+        'carrito'       => $_SESSION['carrito'],
+        'total'         => $total,
+        'css_url'       => '../public/assets/css/style-consumidor.css',
+        'session'       => $_SESSION,
+        'mensaje_error' => $_SESSION['mensaje_error'] ?? null,
+        'mensaje_exito' => $_SESSION['mensaje_exito'] ?? null,
     ]);
-    exit();
+
+    unset($_SESSION['mensaje_error'], $_SESSION['mensaje_exito']);
+
+} catch (Exception $e) {
+    if (!empty($isAjax)) {
+        responder(['success' => false, 'message' => 'Ocurrió un error inesperado.']);
+    }
+    echo "<p>Ocurrió un error inesperado. Por favor, intenta nuevamente más tarde.</p>";
 }
-
-// Renderizar la plantilla Twig
-echo $twig->render('compra.twig', [
-    'carrito' => $_SESSION['carrito'],
-    'total' => $total,
-    'css_url' => '../public/assets/css/style-consumidor.css',
-    'session' => $_SESSION,
-    'mensaje_error' => $_SESSION['mensaje_error'] ?? null,
-    'mensaje_exito' => $_SESSION['mensaje_exito'] ?? null
-]);
-
-// Limpiar mensajes de sesión después de mostrarlos
-unset($_SESSION['mensaje_error'], $_SESSION['mensaje_exito']);
 ?>

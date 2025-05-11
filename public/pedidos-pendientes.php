@@ -14,7 +14,7 @@ $inicio = date('Y-m-d 00:00:00');
 $fin = date('Y-m-d 23:59:59');
 
 // Consulta con BETWEEN para capturar todo el día
-$stmt = $conn->prepare("SELECT p.id, p.total, p.estado, p.fecha_pedido, u.nombre_completo AS usuario_nombre 
+$stmt = $conn->prepare("SELECT p.id, p.total, p.estado, p.fecha_pedido, p.direccion, u.nombre_completo AS usuario_nombre 
                         FROM pedido p 
                         JOIN usuario u ON p.id_usuario = u.id
                         WHERE p.fecha_pedido BETWEEN ? AND ?");

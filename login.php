@@ -2,6 +2,17 @@
 include 'public/config.php';
 session_start();
 
+// Verificar si el usuario ya está logueado
+if (isset($_SESSION['usuario_id'])) {
+    if ($_SESSION['usuario_tipo'] === 'Proveedor') {
+        header("Location: public/inicio-proveedor.php");
+        exit();
+    } else {
+        header("Location: public/inicio-consumidor.php");
+        exit();
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
@@ -21,10 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['usuario_nombre'] = $nombre;
             $_SESSION['usuario_tipo'] = $tipo_usuario; // Guardamos el tipo de usuario correctamente
 
+            // Redirigir a la página correspondiente según el tipo de usuario
             if ($tipo_usuario === 'Proveedor') {
-                header("Location: public/inicio-proveedor.php"); // Redirige al panel de proveedor
+                header("Location: public/inicio-proveedor.php");
             } else {
-                header("Location: public/inicio-consumidor.php"); // Redirige al panel de consumidor
+                header("Location: public/inicio-consumidor.php");
             }
             exit();
         } else {

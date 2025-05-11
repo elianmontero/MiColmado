@@ -18,7 +18,6 @@ Inicio Proveedor - Mi Colmado
 <a href="inicio-proveedor.php"><img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado"><span id="nombre-emp">MI COLMADO</span></a>
 {% endblock %}
 
-
 {% block content %}
 <h2 class="titulo-pedidos">Gestión de Pedidos</h2>
 
@@ -29,6 +28,8 @@ Inicio Proveedor - Mi Colmado
             <th class="columna-cliente">Cliente</th>
             <th class="columna-total">Total</th>
             <th class="columna-estado">Estado</th>
+            <th class="columna-metodo-pago">Método de Pago</th>
+            <th class="columna-direccion">Dirección</th> <!-- Nueva columna para la dirección -->
             <th class="columna-acciones">Acciones</th>
         </tr>
     </thead>
@@ -39,6 +40,8 @@ Inicio Proveedor - Mi Colmado
                 <td class="celda-cliente">{{ pedido.usuario_nombre }}</td>
                 <td class="celda-total">${{ pedido.total }}</td>
                 <td class="celda-estado">{{ pedido.estado }}</td>
+                <td class="celda-metodo-pago">{{ pedido.metodo_pago == 'tarjeta' ? 'Tarjeta' : 'Efectivo' }}</td>
+                <td class="celda-direccion">{{ pedido.direccion }}</td> <!-- Mostrar la dirección -->
                 <td class="celda-acciones">
                     {% if pedido.estado == 'pendiente' %}
                         <button class="btn-estado" data-id="{{ pedido.id }}" data-estado="procesado">Procesar</button>
