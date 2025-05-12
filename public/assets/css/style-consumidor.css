@@ -139,6 +139,16 @@ input:focus {
   text-transform: uppercase;
 }
 
+#txt-especial {
+  margin-left: 45px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #56a55a;
+  font-weight: bold;
+}
+
 .filters {
   margin-top: 40px;
   display: flex;
@@ -156,7 +166,7 @@ input:focus {
 }
 
 #a-show-all {
-  margin-right: 175px;
+  margin-right: 80px;
   text-decoration: none;
   color: #2C6B38;
 }

@@ -45,34 +45,35 @@ try {
             $nombre = trim($data['nombre'] ?? '');
             $marca = trim($data['marca'] ?? '');
             $imagen_url = trim($data['imagen_url'] ?? '');
-            $precio = $data['precio'] ?? 0;
-            $stock = $data['stock'] ?? 0;
+            $precio = is_numeric($data['precio'] ?? null) ? floatval($data['precio']) : null;
+            $stock = is_numeric($data['stock'] ?? null) ? intval($data['stock']) : null;
 
-            // Validar los datos
-            if (empty($nombre) || empty($marca) || empty($imagen_url) || $precio <= 0 || $stock <= 0) {
-                throw new Exception('Datos incompletos o incorrectos para producto personalizado.');
+            if (empty($nombre) || empty($marca) || empty($imagen_url)) {
+                throw new Exception('Nombre, marca e imagen URL son obligatorios.');
             }
 
-            // Insertar el producto en la base de datos
-            $sql = "INSERT INTO producto (nombre, marca, imagen, precio, stock, id_colmado) VALUES (?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO producto (nombre, marca, imagen, precio, stock, id_colmado)
+                    VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssdii", $nombre, $marca, $imagen_url, $precio, $stock, $id_colmado);
+            $stmt->bind_param("sssiii", $nombre, $marca, $imagen_url, $precio, $stock, $id_colmado);
 
             if ($stmt->execute()) {
                 $response = ['success' => true, 'message' => 'Producto personalizado guardado correctamente.'];
             } else {
                 throw new Exception('Error SQL: ' . $stmt->error);
             }
-        } elseif (strpos($contentType, 'multipart/form-data') !== false) {
-            // Procesar datos enviados desde el formulario clásico
+        } elseif (strpos($contentType, 'multipart/form-data') !== false || isset($_POST['nombre'])) {
+            // 🧾 Procesar formulario clásico
             $nombre = trim($_POST['nombre'] ?? '');
+            $precio = is_numeric($_POST['precio'] ?? null) ? floatval($_POST['precio']) : null;
+            $stock = is_numeric($_POST['stock'] ?? null) ? intval($_POST['stock']) : null;
             $imagen = $_FILES['imagen'] ?? null;
 
             if (empty($nombre) || !$imagen || $imagen['error'] !== UPLOAD_ERR_OK) {
-                throw new Exception('Datos incompletos o imagen inválida.');
+                throw new Exception('El nombre y la imagen son obligatorios.');
             }
 
-            // Verificar si el producto ya existe en el colmado
+            // Verificar duplicado
             $stmt = $conn->prepare("SELECT id FROM producto WHERE nombre = ? AND id_colmado = ?");
             $stmt->bind_param("si", $nombre, $id_colmado);
             $stmt->execute();
@@ -82,11 +83,12 @@ try {
                 throw new Exception('El producto ya existe en tu colmado.');
             }
 
-            // Generar un nombre único para la imagen
+            // Subida de imagen
             $uploadDir = __DIR__ . '/../public/uploads/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
+
             $extension = pathinfo($imagen['name'], PATHINFO_EXTENSION);
             $uniqueName = uniqid('img_', true) . '.' . $extension;
             $targetPath = $uploadDir . $uniqueName;
@@ -99,10 +101,10 @@ try {
 
             // Insertar en la base de datos
             $stmt = $conn->prepare(
-                'INSERT INTO producto (nombre, imagen, id_colmado)
-                 VALUES (?, ?, ?)'
+                'INSERT INTO producto (nombre, imagen, precio, stock, id_colmado)
+                 VALUES (?, ?, ?, ?, ?)'
             );
-            $stmt->bind_param('ssi', $nombre, $rutaImagenDB, $id_colmado);
+            $stmt->bind_param('ssdii', $nombre, $rutaImagenDB, $precio, $stock, $id_colmado);
 
             if (!$stmt->execute()) {
                 throw new Exception('Error SQL: ' . $stmt->error);
@@ -124,7 +126,7 @@ if ($isAjax) {
     exit();
 }
 
-// Si es formulario clásico, renderizamos la página Twig
+// Render Twig
 echo $twig->render('agregar-producto.twig', [
     'css_url' => '../public/assets/css/style-proveedor.css',
     'response' => $response,

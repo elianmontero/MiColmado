@@ -86,13 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 
 // Obtener lista de productos
 $productos = [];
-if (isset($_GET['search'])) {
-    $search = $_GET['search'];
-    $stmt = $conn->prepare("SELECT * FROM PRODUCTO WHERE nombre LIKE ?");
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+
+// Si hay búsqueda, traer todos los productos que coincidan
+if ($search) {
+    $stmt = $conn->prepare("SELECT * FROM producto WHERE nombre LIKE ?");
     $search_param = "%" . $search . "%";
     $stmt->bind_param("s", $search_param);
 } else {
-    $stmt = $conn->prepare("SELECT * FROM PRODUCTO");
+    // Si no hay búsqueda, solo traer 5 productos aleatorios
+    $stmt = $conn->prepare("SELECT * FROM producto ORDER BY RAND() LIMIT 5");
 }
 
 $stmt->execute();

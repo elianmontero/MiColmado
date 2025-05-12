@@ -1,0 +1,96 @@
+{% extends "layout.twig" %}
+
+{% block title %}Productos - Mi Colmado{% endblock %}
+
+{% block enlaces %}
+<ul class="menu">
+    <li><a href="ver-todo.php">Ver productos</a></li>
+    <li><a href="compra.php">Carrito de compras</a></li>
+    <li><a href="#">Sobre nosotros</a></li>
+</ul>
+{% endblock %}
+
+{% block enlaces_logo %}
+<a href="inicio-consumidor.php">
+  <img src="/public/assets/img/android-chrome-512x512.png" alt="Mi colmado">
+  <span id="nombre-emp">MI COLMADO</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container-main">
+    <h2>PRODUCTOS MI COLMADO</h2>
+
+    <div class="filters">
+        <form method="get" class="search-container">
+            <i class="bi bi-search"></i>
+            <input type="text" id="search-bar" name="search" placeholder="Buscar producto..." value="{{ search|e }}">
+            <button type="submit" style="display:none;"></button>
+        </form>
+    </div>
+
+    <div class="product-list">
+        {% for producto in productos %}
+        <div class="product-card">
+            <div class="img-product">
+                <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}"
+                     onerror="this.src='/public/assets/img/no-image.png'">
+            </div>
+            <h3 class="product-name">{{ producto.nombre }}</h3>
+            <p>Precio: ${{ producto.precio }}</p>
+            <p>Stock: {{ producto.stock }}</p>
+            <div class="cantidad-container">
+                <input type="number" class="cantidad-input" data-id="{{ producto.id }}" value="1" min="1"
+                       max="{{ producto.stock }}">
+            </div>
+            <button class="btn-agregar" data-id="{{ producto.id }}">Agregar al carrito</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if productos is empty %}
+    <p id="no-results" style="text-align:center; margin-top:20px; font-weight:bold;">
+        No se encontraron productos.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-agregar').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id   = btn.dataset.id;
+            const qty  = parseInt(document.querySelector(`.cantidad-input[data-id="${id}"]`).value, 10);
+            if (qty < 1) {
+                return Swal.fire({ icon:'error', title:'Error', text:'Cantidad mínima 1.' });
+            }
+            const data = new FormData();
+            data.append('accion','agregar');
+            data.append('id_producto', id);
+            data.append('cantidad', qty);
+
+            try {
+                const res  = await fetch('ver-todo.php', {
+                    method:'POST',
+                    headers:{'X-Requested-With':'XMLHttpRequest'},
+                    body:data
+                });
+                const json = await res.json();
+                if (json.success) {
+                    Swal.fire({ icon:'success', title:'¡Agregado!', text:json.message });
+                } else {
+                    Swal.fire({ icon:'error', title:'Error', text:json.message });
+                }
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ icon:'error', title:'Error', text:'No se pudo agregar.' });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

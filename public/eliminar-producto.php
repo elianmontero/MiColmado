@@ -8,11 +8,10 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['id'])) {
-    $producto_id = intval($_GET['id']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+    $producto_id = intval($_POST['id']);
     $usuario_id = $_SESSION['usuario_id'];
 
-    // Verificar que el producto pertenece al usuario
     $stmt = $conn->prepare("SELECT p.id FROM producto p 
                             INNER JOIN colmado c ON p.id_colmado = c.id 
                             WHERE p.id = ? AND c.id_usuario = ?");
@@ -21,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['id'])) {
     $resultado = $stmt->get_result();
 
     if ($resultado->num_rows > 0) {
-        // Eliminar el producto
         $stmt = $conn->prepare("DELETE FROM producto WHERE id = ?");
         $stmt->bind_param("i", $producto_id);
         if ($stmt->execute()) {
