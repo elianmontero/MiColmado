@@ -58,14 +58,14 @@ Inicio Consumidor - Mi Colmado
 </div>
 
 <!-- Contenedor de productos -->
-<div class="product-list">
+<div class="product-list" id="product-list">
     {% for producto in productos %}
     <div class="product-card">
         <div class="img-product">
             <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}"
                 onerror="this.src='/public/assets/img/no-image.png'">
         </div>
-        <h3>{{ producto.nombre }}</h3>
+        <h3 class="product-name">{{ producto.nombre }}</h3>
         <p>Precio: ${{ producto.precio }}</p>
         <p>Stock: {{ producto.stock }}</p>
         <div class="cantidad-container">
@@ -99,101 +99,57 @@ Inicio Consumidor - Mi Colmado
         });
     }
 
-    // Función para mostrar todos los productos cuando se hace clic en "Ver todos +"
-    function showAllProducts() {
-        const products = document.querySelectorAll(".product-list .product-card");
-        products.forEach(product => {
-            product.style.display = ""; // Muestra todos los productos
-        });
-        document.getElementById("a-show-all").style.display = "none"; // Oculta el enlace "Ver todos +"
-    }
-
-    // Función para filtrar productos por nombre
-    function filterTable() {
-        const searchInput = document.getElementById("search-bar").value.toLowerCase();  // Obtener texto de búsqueda
-        let visibleCount = 0;
-
-        allProducts.forEach(product => {
-            const name = product.querySelector("h3").textContent.toLowerCase();  // Nombre del producto
-
-            // Si el nombre incluye el texto de búsqueda, mostrar el producto
-            if (name.includes(searchInput)) {
-                product.style.display = "";  // Mostrar producto
-                visibleCount++;
-            } else {
-                product.style.display = "none";  // Ocultar producto
-            }
-        });
-    }
-
-    function filterTable() {
-        const searchInput = document.getElementById("search-bar").value.toLowerCase();
-        let visibleCount = 0;
-
-        allProducts.forEach(product => {
-            const name = product.querySelector("h3").textContent.toLowerCase();
-
-            if (name.includes(searchInput)) {
-                product.style.display = "";
-                visibleCount++;
-            } else {
-                product.style.display = "none";
-            }
-        });
-
-        const noResultsMessage = document.getElementById("no-results");
-        noResultsMessage.style.display = (visibleCount === 0) ? "block" : "none";
-    }
-
-
     document.addEventListener('DOMContentLoaded', () => {
         // Inicializar productos cuando la página cargue
         initProducts();
 
         // Evento de búsqueda en el input
         const searchBar = document.getElementById("search-bar");
-        searchBar.addEventListener("keyup", filterTable);  // Ejecuta filterTable cada vez que el usuario escribe
+        if (searchBar) {
+            searchBar.addEventListener("keyup", filterTable);
+        }
 
         // Agregar productos al carrito
-        const botonesAgregar = document.querySelectorAll('.btn-agregar');
-        botonesAgregar.forEach(boton => {
-            boton.addEventListener('click', async () => {
-                const productoId = boton.getAttribute('data-id');
-                const cantidadInput = document.querySelector(`.cantidad-input[data-id="${productoId}"]`);
-                const cantidad = parseInt(cantidadInput.value);
+        function attachAddButtons() {
+            const botonesAgregar = document.querySelectorAll('.btn-agregar');
+            botonesAgregar.forEach(boton => {
+                boton.onclick = async () => {
+                    const productoId = boton.getAttribute('data-id');
+                    const cantidadInput = document.querySelector(`.cantidad-input[data-id="${productoId}"]`);
+                    const cantidad = parseInt(cantidadInput.value);
 
-                if (cantidad <= 0) {
-                    Swal.fire('Error', 'La cantidad debe ser mayor a 0.', 'error');
-                    return;
-                }
-
-                try {
-                    const formData = new FormData();
-                    formData.append('accion', 'agregar');
-                    formData.append('id_producto', productoId);
-                    formData.append('cantidad', cantidad);
-
-                    const response = await fetch('inicio-consumidor.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        Swal.fire('Éxito', data.message, 'success');
-                        // Actualizar el carrito dinámicamente si es necesario
-                        console.log('Carrito actualizado:', data.carrito);
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
+                    if (cantidad <= 0) {
+                        Swal.fire('Error', 'La cantidad debe ser mayor a 0.', 'error');
+                        return;
                     }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'Hubo un problema al procesar tu solicitud.', 'error');
-                }
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('accion', 'agregar');
+                        formData.append('id_producto', productoId);
+                        formData.append('cantidad', cantidad);
+
+                        const response = await fetch('inicio-consumidor.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            Swal.fire('¡Éxito!', data.message, 'success');
+                            // Aquí puedes actualizar el carrito dinámicamente si lo deseas
+                        } else {
+                            Swal.fire('Error', data.message, 'error');
+                        }
+                    } catch (error) {
+                        Swal.fire('Error', 'Hubo un problema al procesar tu solicitud.', 'error');
+                    }
+                };
             });
-        });
+        }
+
+        attachAddButtons();
     });
 </script>
-
 {% endblock %}

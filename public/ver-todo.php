@@ -6,90 +6,121 @@ require_once '../vendor/autoload.php';
 
 $loader = new \Twig\Loader\FilesystemLoader('../templates');
 $twig = new \Twig\Environment($loader);
-$twig->addFunction(new \Twig\TwigFunction('asset', fn($p) => '/assets/' . ltrim($p, '/')));
 
-// Si viene un POST para agregar al carrito
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agregar') {
-    header('Content-Type: application/json; charset=utf-8');
+$twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
+    return '/assets/' . ltrim($path, '/');
+}));
 
-    $idProducto = intval($_POST['id_producto'] ?? 0);
-    $cantidad   = intval($_POST['cantidad']   ?? 0);
+// Verificar si es una solicitud para agregar un producto al carrito
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'agregar') {
+    header('Content-Type: application/json');
 
+    $idProducto = intval($_POST['id_producto']);
+    $cantidad = intval($_POST['cantidad']);
+
+    // Validar parámetros
     if ($idProducto <= 0 || $cantidad <= 0) {
-        echo json_encode(['success'=>false,'message'=>'Parámetros inválidos.']);
-        exit;
+        echo json_encode(['success' => false, 'message' => 'Parámetros inválidos.']);
+        exit();
     }
 
-    $stmt = $conn->prepare("SELECT id,nombre,precio,stock,imagen FROM producto WHERE id=?");
-    $stmt->bind_param("i",$idProducto);
+    // Obtener información del producto desde la base de datos
+    $stmt = $conn->prepare("SELECT id, nombre, precio, stock, imagen FROM producto WHERE id = ?");
+    $stmt->bind_param("i", $idProducto);
     $stmt->execute();
     $producto = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
     if (!$producto) {
-        echo json_encode(['success'=>false,'message'=>'Producto no encontrado.']);
-        exit;
-    }
-    if ($cantidad > $producto['stock']) {
-        echo json_encode(['success'=>false,'message'=>'No hay tanto stock.']);
-        exit;
+        echo json_encode(['success' => false, 'message' => 'Producto no encontrado.']);
+        exit();
     }
 
+    // Verificar si hay suficiente stock
+    if ($cantidad > $producto['stock']) {
+        echo json_encode(['success' => false, 'message' => 'La cantidad solicitada excede el stock disponible.']);
+        exit();
+    }
+
+    // Agregar o actualizar el producto en el carrito
     if (!isset($_SESSION['carrito'])) {
         $_SESSION['carrito'] = [];
     }
 
-    $found = false;
+    $encontrado = false;
     foreach ($_SESSION['carrito'] as &$item) {
-        if ($item['id']==$idProducto) {
+        if ($item['id'] == $idProducto) {
             $item['cantidad'] += $cantidad;
             if ($item['cantidad'] > $producto['stock']) {
                 $item['cantidad'] = $producto['stock'];
             }
             $item['subtotal'] = $item['cantidad'] * $producto['precio'];
-            $found = true;
+            $encontrado = true;
             break;
         }
     }
-    if (!$found) {
+
+    if (!$encontrado) {
         $_SESSION['carrito'][] = [
-            'id'       => $producto['id'],
-            'nombre'   => $producto['nombre'],
-            'precio'   => $producto['precio'],
-            'imagen'   => $producto['imagen'],
+            'id' => $producto['id'],
+            'nombre' => $producto['nombre'],
+            'precio' => $producto['precio'],
+            'imagen' => $producto['imagen'], // Asegúrate de incluir la imagen
             'cantidad' => $cantidad,
             'subtotal' => $producto['precio'] * $cantidad,
-            'stock'    => $producto['stock'],
+            'stock' => $producto['stock']
         ];
     }
 
-    $total = array_sum(array_column($_SESSION['carrito'],'subtotal'));
-    echo json_encode(['success'=>true,'message'=>'¡Agregado al carrito!','carrito'=>$_SESSION['carrito'],'total'=>$total]);
-    exit;
+    // Calcular el total del carrito
+    $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Producto agregado al carrito.',
+        'carrito' => $_SESSION['carrito'],
+        'total' => $total
+    ]);
+    exit();
 }
 
-// Cargar productos según búsqueda
+// obtener la lista de todos los productos
 $productos = [];
-$search    = $_GET['search'] ?? '';
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+
 if ($search !== '') {
-    $stmt = $conn->prepare("SELECT * FROM producto WHERE nombre LIKE ?");
-    $like = '%' . $search . '%';
-    $stmt->bind_param("s", $like);
+    $search_param = '%' . $conn->real_escape_string($search) . '%';
+    $stmt = $conn->prepare("SELECT id, nombre, precio, stock, imagen FROM producto WHERE nombre LIKE ?");
+    $stmt->bind_param("s", $search_param);
 } else {
-    $stmt = $conn->prepare("SELECT * FROM producto");
+    $stmt = $conn->prepare("SELECT id, nombre, precio, stock, imagen FROM producto");
 }
+
 $stmt->execute();
-$res = $stmt->get_result();
-while ($row = $res->fetch_assoc()) {
-    $productos[] = $row;
+$resultado = $stmt->get_result();
+while ($fila = $resultado->fetch_assoc()) {
+    $productos[] = $fila;
 }
 $stmt->close();
 
-// Render Twig
+// Verificar si es una solicitud AJAX
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+if ($isAjax) {
+    // Configurar encabezado JSON
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'productos' => $productos
+    ]);
+    exit();
+}
+
+// Renderizar la plantilla Twig para solicitudes normales
 echo $twig->render('ver-todo.twig', [
     'productos' => $productos,
-    'css_url'   => '/public/assets/css/style-consumidor.css',
-    'session'   => $_SESSION,
-    'search'    => $search,
+    'css_url' => '../public/assets/css/style-consumidor.css',
+    'session' => $_SESSION,
+    'logout_url' => 'logout.php'
 ]);
 ?>

@@ -4,9 +4,9 @@
 
 {% block enlaces %}
 <ul class="menu">
-    <li><a href="ver-todo.php">Ver productos</a></li>
-    <li><a href="compra.php">Carrito de compras</a></li>
-    <li><a href="#">Sobre nosotros</a></li>
+  <li><a href="ver-todo.php">Ver productos</a></li>
+  <li><a href="compra.php">Carrito de compras</a></li>
+  <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
 
@@ -17,80 +17,113 @@
 </a>
 {% endblock %}
 
+{% block head %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container-main">
-    <h2>PRODUCTOS MI COLMADO</h2>
-
+  <h2>PRODUCTOS MI COLMADO</h2>
+  <form id="form-busqueda" method="get" action="ver-todo.php" style="margin-bottom: 20px;">
     <div class="filters">
-        <form method="get" class="search-container">
-            <i class="bi bi-search"></i>
-            <input type="text" id="search-bar" name="search" placeholder="Buscar producto..." value="{{ search|e }}">
-            <button type="submit" style="display:none;"></button>
-        </form>
+      <div class="search-container" style="display: flex; align-items: center;">
+        <i class="bi bi-search"></i>
+        <input type="text" id="search-bar" name="search" placeholder="Buscar producto..." value="{{ search|e }}"
+          style="margin-right: 5px;">
+        <button id="btn-buscar" type="submit" class="btn-buscar"
+          style="height: 32px; margin-left: 5px; background-color: #56a55a; color: #fff; border: none; border-radius: 5px; padding: 0 18px; font-weight: bold; font-size: 1rem; transition: background-color 0.3s;">
+          Buscar
+        </button>
+      </div>
     </div>
+  </form>
 
-    <div class="product-list">
-        {% for producto in productos %}
-        <div class="product-card">
-            <div class="img-product">
-                <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}"
-                     onerror="this.src='/public/assets/img/no-image.png'">
-            </div>
-            <h3 class="product-name">{{ producto.nombre }}</h3>
-            <p>Precio: ${{ producto.precio }}</p>
-            <p>Stock: {{ producto.stock }}</p>
-            <div class="cantidad-container">
-                <input type="number" class="cantidad-input" data-id="{{ producto.id }}" value="1" min="1"
-                       max="{{ producto.stock }}">
-            </div>
-            <button class="btn-agregar" data-id="{{ producto.id }}">Agregar al carrito</button>
-        </div>
-        {% endfor %}
+  <div class="product-list" id="product-list">
+    {% for producto in productos %}
+    <div class="product-card">
+      <div class="img-product">
+        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}"
+          onerror="this.src='/public/assets/img/no-image.png'">
+      </div>
+      <h3 class="product-name">{{ producto.nombre }}</h3>
+      <p>Precio: ${{ producto.precio }}</p>
+      <p>Stock: {{ producto.stock }}</p>
+      <div class="cantidad-container">
+        <input type="number" class="cantidad-input" data-id="{{ producto.id }}" value="1" min="1"
+          max="{{ producto.stock }}">
+      </div>
+      <button type="button" class="btn-agregar" data-id="{{ producto.id }}">Agregar al carrito</button>
     </div>
-
+    {% endfor %}
     {% if productos is empty %}
-    <p id="no-results" style="text-align:center; margin-top:20px; font-weight:bold;">
-        No se encontraron productos.
+    <p id="no-results" style="text-align: center; margin-top: 20px; font-weight: bold;">
+      No se encontraron productos.
     </p>
     {% endif %}
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-{{ parent() }}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.btn-agregar').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const id   = btn.dataset.id;
-            const qty  = parseInt(document.querySelector(`.cantidad-input[data-id="${id}"]`).value, 10);
-            if (qty < 1) {
-                return Swal.fire({ icon:'error', title:'Error', text:'Cantidad mínima 1.' });
-            }
-            const data = new FormData();
-            data.append('accion','agregar');
-            data.append('id_producto', id);
-            data.append('cantidad', qty);
+  // 🔥 Log fuera de DOMContentLoaded para ver si el script carga en primer lugar
+  console.log('🔥 carrito.js cargado');
 
-            try {
-                const res  = await fetch('ver-todo.php', {
-                    method:'POST',
-                    headers:{'X-Requested-With':'XMLHttpRequest'},
-                    body:data
-                });
-                const json = await res.json();
-                if (json.success) {
-                    Swal.fire({ icon:'success', title:'¡Agregado!', text:json.message });
-                } else {
-                    Swal.fire({ icon:'error', title:'Error', text:json.message });
-                }
-            } catch (e) {
-                console.error(e);
-                Swal.fire({ icon:'error', title:'Error', text:'No se pudo agregar.' });
-            }
-        });
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('📦 DOM listo, inicializando carrito');
+
+    // Limpia búsqueda
+    document.getElementById('form-busqueda').addEventListener('submit', () => {
+      setTimeout(() => { document.getElementById('search-bar').value = ''; }, 100);
     });
-});
+
+    // Delegación en todo product-list
+    const lista = document.getElementById('product-list');
+    console.log('👉 contenedor product-list encontrado:', !!lista);
+
+    lista.addEventListener('click', async (e) => {
+      if (!e.target.classList.contains('btn-agregar')) return;
+
+      console.log('🖱  Botón pulsado');
+      const boton = e.target;
+      const productoId = boton.getAttribute('data-id');
+      const cantidadInput = document.querySelector(`.cantidad-input[data-id="${productoId}"]`);
+      const cantidad = parseInt(cantidadInput.value, 10);
+      console.log(`   ID=${productoId}, cantidad=${cantidad}`);
+
+      if (isNaN(cantidad) || cantidad <= 0) {
+        return Swal.fire('Error', 'La cantidad debe ser mayor a 0.', 'error');
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('accion', 'agregar');
+        formData.append('id_producto', productoId);
+        formData.append('cantidad', cantidad);
+
+        console.log('   → enviando fetch…');
+        const response = await fetch('ver-todo.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        console.log('   ← respuesta recibida, status', response.status);
+        if (!response.ok) throw new Error(response.status);
+
+        const data = await response.json();
+        console.log('   ← JSON', data);
+
+        if (data.success) {
+          Swal.fire('¡Éxito!', data.message, 'success');
+        } else {
+          Swal.fire('Error', data.message, 'error');
+        }
+      } catch (err) {
+        console.error('💥 Error fetch:', err);
+        Swal.fire('Error', 'Hubo un problema al procesar tu solicitud.', 'error');
+      }
+    });
+  });
 </script>
 {% endblock %}
