@@ -6,8 +6,8 @@ Carrito de compras - Mi Colmado
 
 {% block enlaces %}
 <ul class="menu">
-    <li><a href="ver-todo.php">Ver productos</a></li>
-    <li><a href="compra.php">Carrito de compras</a></li>
+    <li><a href="{{ session_url('ver-todo.php') }}">Ver productos</a></li>
+    <li><a href="{{ session_url('compra.php') }}">Carrito de compras</a></li>
     <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
@@ -127,9 +127,9 @@ Carrito de compras - Mi Colmado
                         const formData = new FormData();
                         formData.append('accion', 'eliminar');
                         formData.append('id_producto', id);
-                        fetch('compra.php', {
+                        const sessionName = "{{ session_name|e('js') }}";
+                        fetch('compra.php?session_name=' + encodeURIComponent(sessionName), {
                             method: 'POST',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
                             body: formData
                         })
                         .then(response => response.json())
@@ -177,9 +177,9 @@ Carrito de compras - Mi Colmado
             formData.append('accion', 'actualizar');
             formData.append('id_producto', id);
             formData.append('cantidad', cantidad);
-            fetch('compra.php', {
+            const sessionName = "{{ session_name|e('js') }}";
+            fetch('compra.php?session_name=' + encodeURIComponent(sessionName), {
                 method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(response => response.json())
@@ -305,10 +305,9 @@ Carrito de compras - Mi Colmado
             if (metodoSeleccionado === 'tarjeta') {
                 Object.entries(tarjetaData).forEach(([k, v]) => formData.append(k, v));
             }
-
-            fetch('compra.php', {
+            const sessionName = "{{ session_name|e('js') }}";
+            fetch('compra.php?session_name=' + encodeURIComponent(sessionName), {
                 method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(res => res.json())

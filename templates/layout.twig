@@ -58,7 +58,7 @@
           <div class="menu-seccion">
             {% if session.usuario_nombre is defined %}
             <p>Hola, {{ session.usuario_nombre }}</p>
-            <button onclick="location.href='/public/logout.php'">Cerrar Sesión</button>
+            <button onclick="location.href='/public/logout.php?session_name={{ session_name }}'">Cerrar Sesión</button>
             {% else %}
             <button onclick="location.href='../login.php'">Iniciar Sesión</button>
             <button onclick="location.href='/public/registro-proveedor.php'">Registrarse</button>
@@ -82,6 +82,42 @@
     window.addEventListener('load', function () {
       document.getElementById('loading-screen').style.display = 'none';
       document.querySelector('.container-main').style.opacity = '1';
+    });
+
+    // Automatiza session_name en todos los enlaces y formularios
+    document.addEventListener('DOMContentLoaded', function () {
+      const sessionName = "{{ session_name|e('js') }}";
+      if (!sessionName) return;
+
+      // Añade session_name a todos los <a> internos
+      document.querySelectorAll('a[href]').forEach(a => {
+        const href = a.getAttribute('href');
+        if (
+          !href ||
+          href.startsWith('#') ||
+          href.startsWith('mailto:') ||
+          href.startsWith('tel:') ||
+          href.startsWith('javascript:') ||
+          href.includes('session_name=')
+        ) return;
+        if (!href.startsWith('http') && !href.startsWith('//')) {
+          let sep = href.includes('?') ? '&' : '?';
+          a.setAttribute('href', href + sep + 'session_name=' + encodeURIComponent(sessionName));
+        }
+      });
+
+      // Añade session_name a todos los <form>
+      document.querySelectorAll('form[action]').forEach(form => {
+        const action = form.getAttribute('action');
+        if (
+          !action ||
+          action.includes('session_name=') ||
+          action.startsWith('http') ||
+          action.startsWith('//')
+        ) return;
+        let sep = action.includes('?') ? '&' : '?';
+        form.setAttribute('action', action + sep + 'session_name=' + encodeURIComponent(sessionName));
+      });
     });
   </script>
 

@@ -6,8 +6,8 @@ Inicio Consumidor - Mi Colmado
 
 {% block enlaces %}
 <ul class="menu">
-    <li><a href="ver-todo.php">Ver productos</a></li>
-    <li><a href="compra.php">Carrito de compras</a></li>
+    <li><a href="{{ session_url('ver-todo.php') }}">Ver productos</a></li>
+    <li><a href="{{ session_url('compra.php') }}">Carrito de compras</a></li>
     <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
@@ -112,6 +112,7 @@ Inicio Consumidor - Mi Colmado
         // Agregar productos al carrito
         function attachAddButtons() {
             const botonesAgregar = document.querySelectorAll('.btn-agregar');
+            const sessionName = "{{ session_name|e('js') }}";
             botonesAgregar.forEach(boton => {
                 boton.onclick = async () => {
                     const productoId = boton.getAttribute('data-id');
@@ -129,7 +130,7 @@ Inicio Consumidor - Mi Colmado
                         formData.append('id_producto', productoId);
                         formData.append('cantidad', cantidad);
 
-                        const response = await fetch('inicio-consumidor.php', {
+                        const response = await fetch('inicio-consumidor.php?session_name=' + encodeURIComponent(sessionName), {
                             method: 'POST',
                             body: formData
                         });
@@ -138,7 +139,6 @@ Inicio Consumidor - Mi Colmado
 
                         if (data.success) {
                             Swal.fire('¡Éxito!', data.message, 'success');
-                            // Aquí puedes actualizar el carrito dinámicamente si lo deseas
                         } else {
                             Swal.fire('Error', data.message, 'error');
                         }

@@ -1,6 +1,15 @@
 <?php 
-include '../public/config.php';
+// Permitir varias sesiones activas por usuario/pestaña
+if (isset($_GET['session_name'])) {
+    session_name($_GET['session_name']);
+} elseif (isset($_POST['session_name'])) {
+    session_name($_POST['session_name']);
+} elseif (isset($_COOKIE['session_name'])) {
+    session_name($_COOKIE['session_name']);
+}
 session_start();
+
+include '../public/config.php';
 require_once '../vendor/autoload.php';
 
 // Cargar el cargador de plantillas de Twig

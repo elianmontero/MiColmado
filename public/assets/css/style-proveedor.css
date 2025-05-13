@@ -140,6 +140,24 @@ input:focus {
   text-transform: uppercase;
 }
 
+.card-title {
+  font-weight: 600;
+}
+.card-text.display-4 {
+  font-size: 2.5rem;
+  color: #007bff;
+}
+
+.d-flex {
+  gap: 7rem;
+  margin-top: 40px;
+}
+
+.row {
+  margin-top: 40px;
+}
+
+
 .form-container {
   width: 400px;
   height: fit-content;

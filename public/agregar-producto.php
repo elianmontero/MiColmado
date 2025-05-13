@@ -1,6 +1,15 @@
 <?php
-include '../public/config.php';
+// Permitir varias sesiones activas por usuario/pestaña
+if (isset($_GET['session_name'])) {
+    session_name($_GET['session_name']);
+} elseif (isset($_POST['session_name'])) {
+    session_name($_POST['session_name']);
+} elseif (isset($_COOKIE['session_name'])) {
+    session_name($_COOKIE['session_name']);
+}
 session_start();
+
+include '../public/config.php';
 require_once '../vendor/autoload.php';
 
 $loader = new \Twig\Loader\FilesystemLoader('../templates');
@@ -10,12 +19,27 @@ $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
     return '/assets/' . ltrim($path, '/');
 }));
 
+$twig->addFunction(new \Twig\TwigFunction('session_url', function ($url) {
+    $sessionName = session_name();
+    $sessionId = session_id();
+    if (!$sessionName || !$sessionId) return $url;
+    $sep = (strpos($url, '?') !== false) ? '&' : '?';
+    return $url . $sep . 'session_name=' . $sessionName;
+}));
+
 $response = [];
 
-// Verificar sesión
+$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: ../login.php");
-    exit();
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Sesión expirada. Por favor inicia sesión.']);
+        exit();
+    } else {
+        header("Location: ../login.php");
+        exit();
+    }
 }
 
 $usuario_id = $_SESSION['usuario_id'];
@@ -32,8 +56,6 @@ if (!$colmado) {
 
 $id_colmado = $colmado['id'];
 
-$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
 try {
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
@@ -44,18 +66,22 @@ try {
 
             $nombre = trim($data['nombre'] ?? '');
             $marca = trim($data['marca'] ?? '');
-            $imagen_url = trim($data['imagen_url'] ?? '');
+            $imagen_url = trim($data['imagen_url'] ?? $data['imagen'] ?? '');
             $precio = is_numeric($data['precio'] ?? null) ? floatval($data['precio']) : null;
             $stock = is_numeric($data['stock'] ?? null) ? intval($data['stock']) : null;
 
-            if (empty($nombre) || empty($marca) || empty($imagen_url)) {
-                throw new Exception('Nombre, marca e imagen URL son obligatorios.');
+            if (empty($nombre) || empty($imagen_url) || $precio === null || $stock === null) {
+                throw new Exception('Nombre, imagen, precio y stock son obligatorios.');
             }
 
+            // Si marca no viene, poner cadena vacía
+            if ($marca === null) $marca = '';
+
+            // Insertar en la base de datos
             $sql = "INSERT INTO producto (nombre, marca, imagen, precio, stock, id_colmado)
                     VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssiii", $nombre, $marca, $imagen_url, $precio, $stock, $id_colmado);
+            $stmt->bind_param("sssddi", $nombre, $marca, $imagen_url, $precio, $stock, $id_colmado);
 
             if ($stmt->execute()) {
                 $response = ['success' => true, 'message' => 'Producto personalizado guardado correctamente.'];
@@ -119,17 +145,18 @@ try {
     $response = ['success' => false, 'message' => $e->getMessage()];
 }
 
-// Si es AJAX, responde con JSON
+// Si es AJAX, responde con JSON y termina el script
 if ($isAjax) {
     header('Content-Type: application/json');
     echo json_encode($response);
     exit();
 }
 
-// Render Twig
+// Render Twig solo si NO es AJAX
 echo $twig->render('agregar-producto.twig', [
     'css_url' => '../public/assets/css/style-proveedor.css',
     'response' => $response,
-    'session' => $_SESSION
+    'session' => $_SESSION,
+    'session_name' => session_name()
 ]);
 ?>

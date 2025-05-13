@@ -6,10 +6,10 @@ Inicio Proveedor - Mi Colmado
 
 {% block enlaces %}
 <ul class="menu">
-    <li><a href="inicio-proveedor.php">Inicio</a></li>
-    <li><a href="agregar-producto.php">Agregar productos</a></li>
-    <li><a href="ver-productos.php">Ver productos</a></li>
-    <li><a href="pedidos-pendientes.php">Pedidos pendientes</a></li>
+    <li><a href="{{ session_url('inicio-proveedor.php') }}">Inicio</a></li>
+    <li><a href="{{ session_url('agregar-producto.php') }}">Agregar productos</a></li>
+    <li><a href="{{ session_url('ver-productos.php') }}">Ver productos</a></li>
+    <li><a href="{{ session_url('pedidos-pendientes.php') }}">Pedidos pendientes</a></li>
     <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
@@ -89,5 +89,31 @@ Inicio Proveedor - Mi Colmado
             });
         });
     });
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const sessionName = "{{ session_name|e('js') }}";
+
+    // Ejemplo para actualizar estado de pedido por AJAX
+    function actualizarEstadoPedido(id, nuevoEstado) {
+        fetch('actualizar-estado-pedido.php?session_name=' + encodeURIComponent(sessionName), {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: new URLSearchParams({ id, estado: nuevoEstado })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire("Actualizado", data.message, "success").then(() => location.reload());
+            } else {
+                Swal.fire("Error", data.message, "error");
+            }
+        })
+        .catch(() => {
+            Swal.fire("Error al procesar la solicitud.", { icon: "error" });
+        });
+    }
 </script>
 {% endblock %}

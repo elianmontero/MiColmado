@@ -4,9 +4,9 @@
 
 {% block enlaces %}
 <ul class="menu">
-  <li><a href="ver-todo.php">Ver productos</a></li>
-  <li><a href="compra.php">Carrito de compras</a></li>
-  <li><a href="#">Sobre nosotros</a></li>
+    <li><a href="{{ session_url('ver-todo.php') }}">Ver productos</a></li>
+    <li><a href="{{ session_url('compra.php') }}">Carrito de compras</a></li>
+    <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
 
@@ -82,6 +82,9 @@
     const lista = document.getElementById('product-list');
     console.log('👉 contenedor product-list encontrado:', !!lista);
 
+    // Obtén el session_name desde Twig
+    const sessionName = "{{ session_name|e('js') }}";
+
     lista.addEventListener('click', async (e) => {
       if (!e.target.classList.contains('btn-agregar')) return;
 
@@ -103,7 +106,7 @@
         formData.append('cantidad', cantidad);
 
         console.log('   → enviando fetch…');
-        const response = await fetch('ver-todo.php', {
+        const response = await fetch('ver-todo.php?session_name=' + encodeURIComponent(sessionName), {
           method: 'POST',
           body: formData
         });

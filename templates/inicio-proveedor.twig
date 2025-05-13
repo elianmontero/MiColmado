@@ -6,10 +6,10 @@ Inicio Proveedor - Mi Colmado
 
 {% block enlaces %}
 <ul class="menu">
-    <li><a href="inicio-proveedor.php">Inicio</a></li>
-    <li><a href="agregar-producto.php">Agregar productos</a></li>
-    <li><a href="ver-productos.php">Ver productos</a></li>
-    <li><a href="pedidos-pendientes.php">Pedidos pendientes</a></li>
+    <li><a href="{{ session_url('inicio-proveedor.php') }}">Inicio</a></li>
+    <li><a href="{{ session_url('agregar-producto.php') }}">Agregar productos</a></li>
+    <li><a href="{{ session_url('ver-productos.php') }}">Ver productos</a></li>
+    <li><a href="{{ session_url('pedidos-pendientes.php') }}">Pedidos pendientes</a></li>
     <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
@@ -19,41 +19,103 @@ Inicio Proveedor - Mi Colmado
 {% endblock %}
 
 {% block content %}
+<div id="carouselExampleControls" class="carousel slide mb-4" data-ride="carousel" data-pause="false">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img style="object-position: bottom;" class="d-block w-100" src="/public/assets/img/slider-organizando.jpg" alt="Productos frescos">
+            <div class="slider-overlay">
+                <h1>Mantén tus productos siempre frescos</h1>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <img class="d-block w-100" src="/public/assets/img/slider-productos.jpg" alt="Variedades de productos">
+            <div class="slider-overlay">
+                <h1>Gestiona tus productos</h1>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <img class="d-block w-100" src="/public/assets/img/slider-deliveri.jpeg" alt="deliveries a la orden">
+            <div class="slider-overlay">
+                <h1>Deliveries listos para entregar tus pedidos</h1>
+            </div>
+        </div>
+    </div>
+    <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Anterior</span>
+    </a>
+    <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Siguiente</span>
+    </a>
+</div>
 
-    <div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-pause="false">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img style="object-position: bottom;" src="/public/assets/img/slider-organizando.jpg" alt="Productos frescos">
-                <div class="slider-overlay">
-                    <h1>manten tus productos siempre frescos</h1>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img class="d-block w-100" src="/public/assets/img/slider-productos.jpg" alt="Variedades de productos">
-                <div class="slider-overlay">
-                    <h1>Gestiona tus productos</h1>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img class="d-block w-100" src="/public/assets/img/slider-deliveri.jpeg" alt="deliveries a la orden">
-                <div class="slider-overlay">
-                    <h1>Deliveries siempre listos para entregar tus pedidos</h1>
+<div class="container text-center mb-4">
+    <h2 class="mb-3">Resumen rápido Mi Colmado</h2>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Productos activos</h5>
+                    <p class="card-text display-4">{{ productosActivos }}</p>
                 </div>
             </div>
         </div>
-        <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Pedidos pendientes</h5>
+                    <p class="card-text display-4">{{ pedidosPendientes }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Ganancias (mes)</h5>
+                    <p class="card-text display-4">${{ gananciasMes }}</p>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="container-btn">
-        <button id="productos-btn" onclick="location.href='agregar-producto.php'">Agregar Producto</button>
-
-        <button id="productos-btn" onclick="location.href='ver-productos.php'">Ver Productos</button>
+<div class="container text-center mb-4">
+    <h2 class="mb-3">Accesos rápidos</h2>
+    <div class="d-flex justify-content-center">
+        <a href="agregar-producto.php" class="btn btn-primary btn-lg"><i class="bi bi-plus-circle"></i> Agregar Producto</a>
+        <a href="ver-productos.php" class="btn btn-secondary btn-lg"><i class="bi bi-box-seam"></i> Ver Productos</a>
+        <a href="pedidos-pendientes.php" class="btn btn-warning btn-lg"><i class="bi bi-truck"></i> Ver Pedidos</a>
     </div>
+</div>
+
+<div class="container mb-5">
+    <h2 class="text-center mb-3">Consejos útiles para proveedores</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card h-100 border-info">
+                <div class="card-body">
+                    <h5 class="card-title">Actualiza tu stock</h5>
+                    <p class="card-text">Mantén tus productos y cantidades actualizadas para evitar retrasos en los pedidos.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-success">
+                <div class="card-body">
+                    <h5 class="card-title">Revisa pedidos frecuentemente</h5>
+                    <p class="card-text">Revisar los pedidos a frecuentemente mejora la eficiencia y la satisfacción del cliente.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Promociona tus productos</h5>
+                    <p class="card-text">Usa imágenes atractivas y descripciones claras para destacar tus productos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

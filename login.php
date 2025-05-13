@@ -1,16 +1,30 @@
 <?php
 include 'public/config.php';
-session_start();
 
-// Verificar si el usuario ya está logueado
-if (isset($_SESSION['usuario_id'])) {
-    if ($_SESSION['usuario_tipo'] === 'Proveedor') {
-        header("Location: public/inicio-proveedor.php");
-        exit();
-    } else {
-        header("Location: public/inicio-consumidor.php");
-        exit();
+// Permitir varias sesiones activas por usuario/pestaña
+if (isset($_GET['session_name'])) {
+    session_name($_GET['session_name']);
+} elseif (isset($_POST['session_name'])) {
+    session_name($_POST['session_name']);
+} elseif (isset($_COOKIE['session_name'])) {
+    session_name($_COOKIE['session_name']);
+}
+
+// Solo iniciar sesión si ya existe una cookie de sesión personalizada
+if (isset($_COOKIE['session_name']) && isset($_COOKIE[$_COOKIE['session_name']])) {
+    session_start();
+    // Verificar si el usuario ya está logueado en esta sesión personalizada
+    if (isset($_SESSION['usuario_id'])) {
+        if ($_SESSION['usuario_tipo'] === 'Proveedor') {
+            header("Location: public/inicio-proveedor.php?session_name=" . session_name());
+            exit();
+        } else {
+            header("Location: public/inicio-consumidor.php?session_name=" . session_name());
+            exit();
+        }
     }
+} else {
+    // No iniciar sesión todavía, mostrar el formulario de login
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -28,15 +42,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Verifica si el usuario existe y si la contraseña es correcta
     if ($stmt->num_rows > 0) {
         if (password_verify($password, $hash_password)) {
+            // Generar un nombre de sesión único por pestaña
+            $customSessionName = 'sess_' . bin2hex(random_bytes(8));
+            session_name($customSessionName);
+            session_start();
             $_SESSION['usuario_id'] = $id;
             $_SESSION['usuario_nombre'] = $nombre;
-            $_SESSION['usuario_tipo'] = $tipo_usuario; // Guardamos el tipo de usuario correctamente
+            $_SESSION['usuario_tipo'] = $tipo_usuario;
 
-            // Redirigir a la página correspondiente según el tipo de usuario
+            // Guardar el nombre de la sesión en una cookie para esta pestaña
+            setcookie('session_name', $customSessionName, 0, '/');
+
+            // Redirigir a la página correspondiente con el nombre de la sesión en la URL
             if ($tipo_usuario === 'Proveedor') {
-                header("Location: public/inicio-proveedor.php");
+                header("Location: public/inicio-proveedor.php?session_name=$customSessionName");
             } else {
-                header("Location: public/inicio-consumidor.php");
+                header("Location: public/inicio-consumidor.php?session_name=$customSessionName");
             }
             exit();
         } else {

@@ -1,5 +1,14 @@
 <?php
 include 'config.php';
+
+// Permitir varias sesiones activas por usuario/pestaña
+if (isset($_GET['session_name'])) {
+    session_name($_GET['session_name']);
+} elseif (isset($_POST['session_name'])) {
+    session_name($_POST['session_name']);
+} elseif (isset($_COOKIE['session_name'])) {
+    session_name($_COOKIE['session_name']);
+}
 session_start();
 
 require_once '../vendor/autoload.php';
@@ -9,6 +18,14 @@ $twig = new \Twig\Environment($loader);
 
 $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
     return '/assets/' . ltrim($path, '/');
+}));
+
+$twig->addFunction(new \Twig\TwigFunction('session_url', function ($url) {
+    $sessionName = session_name();
+    $sessionId = session_id();
+    if (!$sessionName || !$sessionId) return $url;
+    $sep = (strpos($url, '?') !== false) ? '&' : '?';
+    return $url . $sep . 'session_name=' . $sessionName;
 }));
 
 // Verificar si es una solicitud para agregar un producto al carrito
@@ -123,6 +140,7 @@ echo $twig->render('inicio-consumidor.twig', [
     'productos' => $productos,
     'css_url' => '../public/assets/css/style-consumidor.css',
     'session' => $_SESSION,
-    'logout_url' => 'logout.php'
+    'logout_url' => 'logout.php',
+    'session_name' => session_name()
 ]);
 ?>

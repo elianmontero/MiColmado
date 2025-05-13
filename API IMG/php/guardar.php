@@ -16,38 +16,54 @@ $response = [];
 
 // Verificar si hay un usuario autenticado
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
-    exit();
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Sesión expirada. Por favor inicia sesión.']);
+        exit();
+    } else {
+        header("Location: login.php");
+        exit();
+    }
 }
 
-// Obtener el ID del colmado asociado al usuario
+// Obtener el ID del colmado y el id_usuario asociado al usuario en sesión
 $usuario_id = $_SESSION['usuario_id'];
-$stmt = $conn->prepare("SELECT id FROM colmado WHERE id_usuario = ?");
+$stmt = $conn->prepare("SELECT id, id_usuario FROM colmado WHERE id_usuario = ?");
 $stmt->bind_param("i", $usuario_id);
 $stmt->execute();
 $resultado = $stmt->get_result();
 $colmado = $resultado->fetch_assoc();
 
 if (!$colmado) {
-    header("Location: registro-proveedor.php");
-    exit();
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'No tienes un colmado registrado.']);
+        exit();
+    } else {
+        header("Location: registro-proveedor.php");
+        exit();
+    }
 }
 
 $id_colmado = $colmado['id'];
+$id_usuario_colmado = $colmado['id_usuario']; // Este será igual a $usuario_id, pero lo dejamos explícito
 
 // Detectar si la solicitud es AJAX
 $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = $_POST["nombre"] ?? '';
-    $precio = $_POST["precio"] ?? '';
-    $stock = $_POST["stock"] ?? '';
     $imagen = $_FILES["imagen"] ?? null;
 
+    // Valores por defecto para productos agregados por la API
+    $precio = 1.0;
+    $stock = 0;
+    $marca = '';
+
     // Validación de los campos
-    if (empty($nombre) || !is_numeric($precio) || !is_numeric($stock) || !$imagen) {
+    if (empty($nombre) || !$imagen) {
         $response['success'] = false;
-        $response['message'] = 'Hubo un problema al enviar el formulario.';
+        $response['message'] = 'El nombre y la imagen son obligatorios.';
     } else {
         // Definir el directorio para guardar las imágenes
         $directorio = "../public/assets/imagenes-productos/";
@@ -57,24 +73,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             mkdir($directorio, 0777, true);
         }
 
-        // Obtener el archivo de la imagen
-        $archivo = $directorio . basename($_FILES["imagen"]["name"]);
-        $tipoArchivo = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
+        // Generar nombre único para la imagen
+        $extension = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
         $extensionesPermitidas = array("jpg", "jpeg", "png", "webp");
 
-        // Verificar si el archivo tiene una extensión permitida
-        if (!in_array($tipoArchivo, $extensionesPermitidas)) {
+        if (!in_array($extension, $extensionesPermitidas)) {
             $response['success'] = false;
             $response['message'] = 'El formato de la imagen no es permitido.';
         } else {
-            // Subir el archivo al servidor
-            if (move_uploaded_file($_FILES["imagen"]["tmp_name"], $archivo)) {
-                // Consulta SQL para insertar el producto
-                $sql = "INSERT INTO producto (nombre, precio, stock, imagen, id_colmado) VALUES (?, ?, ?, ?, ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("ssssi", $nombre, $precio, $stock, $archivo, $id_colmado);
+            $uniqueName = uniqid('img_', true) . '.' . $extension;
+            $archivo = $directorio . $uniqueName;
 
-                // Ejecutar la consulta
+            // Subir el archivo al servidor
+            if (move_uploaded_file($imagen["tmp_name"], $archivo)) {
+                $rutaImagenDB = '/public/assets/imagenes-productos/' . $uniqueName;
+
+                // Insertar el producto con precio=1 y stock=0
+                $sql = "INSERT INTO producto (nombre, marca, precio, stock, imagen, id_colmado) VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("ssdsis", $nombre, $marca, $precio, $stock, $rutaImagenDB, $id_colmado);
+
                 if ($stmt->execute()) {
                     $response['success'] = true;
                     $response['message'] = 'Producto agregado correctamente.';
@@ -83,7 +101,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $response['message'] = 'Ocurrió un error al agregar el producto: ' . $stmt->error;
                 }
 
-                // Cerrar la consulta
                 $stmt->close();
             } else {
                 $response['success'] = false;

@@ -1,6 +1,16 @@
 <?php
 include 'config.php';
+
+// Permitir varias sesiones activas por usuario/pestaña
+if (isset($_GET['session_name'])) {
+    session_name($_GET['session_name']);
+} elseif (isset($_POST['session_name'])) {
+    session_name($_POST['session_name']);
+} elseif (isset($_COOKIE['session_name'])) {
+    session_name($_COOKIE['session_name']);
+}
 session_start();
+
 require_once '../vendor/autoload.php';
 
 // Cargar Twig
@@ -8,6 +18,14 @@ $loader = new \Twig\Loader\FilesystemLoader('../templates');
 $twig = new \Twig\Environment($loader);
 $twig->addFunction(new \Twig\TwigFunction('asset', function ($path) {
     return '/assets/' . ltrim($path, '/');
+}));
+
+$twig->addFunction(new \Twig\TwigFunction('session_url', function ($url) {
+    $sessionName = session_name();
+    $sessionId = session_id();
+    if (!$sessionName || !$sessionId) return $url;
+    $sep = (strpos($url, '?') !== false) ? '&' : '?';
+    return $url . $sep . 'session_name=' . $sessionName;
 }));
 
 // Asegurar autenticación
@@ -25,6 +43,20 @@ try {
     // Calcular total actual
     $total = array_sum(array_column($_SESSION['carrito'], 'subtotal'));
     $total = floatval($total);
+
+    // Si el carrito está vacío, renderiza la página normalmente
+    if (empty($_SESSION['carrito'])) {
+        echo $twig->render('compra.twig', [
+            'carrito'       => $_SESSION['carrito'],
+            'total'         => 0,
+            'css_url'       => '../public/assets/css/style-consumidor.css',
+            'session'       => $_SESSION,
+            'mensaje_error' => null,
+            'mensaje_exito' => null,
+            'session_name'  => session_name()
+        ]);
+        exit;
+    }
 
     // Función auxiliar para respuestas JSON AJAX
     function responder($array) {
@@ -57,15 +89,42 @@ try {
 
             $total = floatval(array_sum(array_column($_SESSION['carrito'], 'subtotal')));
 
-            // Insertar pedido
+            // Obtener el id_colmado del primer producto del carrito
+            $primerProductoId = $_SESSION['carrito'][0]['id'];
+            $stmtColmado = $conn->prepare("SELECT id_colmado FROM producto WHERE id = ?");
+            $stmtColmado->bind_param("i", $primerProductoId);
+            $stmtColmado->execute();
+            $resColmado = $stmtColmado->get_result();
+            $colmado = $resColmado->fetch_assoc();
+            $id_colmado = $colmado['id_colmado'] ?? null;
+            $stmtColmado->close();
+
+            if (!$id_colmado) {
+                responder(['success' => false, 'message' => 'No se pudo determinar el colmado del pedido.']);
+            }
+
+            // Obtener el id_usuario (proveedor) del colmado
+            $stmtProveedor = $conn->prepare("SELECT id_usuario FROM colmado WHERE id = ?");
+            $stmtProveedor->bind_param("i", $id_colmado);
+            $stmtProveedor->execute();
+            $resProveedor = $stmtProveedor->get_result();
+            $proveedor = $resProveedor->fetch_assoc();
+            $proveedor_id = $proveedor['id_usuario'] ?? null;
+            $stmtProveedor->close();
+
+            if (!$proveedor_id) {
+                responder(['success' => false, 'message' => 'No se pudo determinar el proveedor del pedido.']);
+            }
+
+            // Insertar pedido con proveedor_id
             $stmt = $conn->prepare(
-                "INSERT INTO pedido (id_usuario, total, estado, metodo_pago, direccion)
-                 VALUES (?, ?, 'pendiente', ?, ?)"
+                "INSERT INTO pedido (id_usuario, total, estado, metodo_pago, direccion, proveedor_id)
+                 VALUES (?, ?, 'pendiente', ?, ?, ?)"
             );
             if (!$stmt) {
                 responder(['success' => false, 'message' => 'Ocurrió un error al procesar el pedido.']);
             }
-            $stmt->bind_param("idss", $usuario_id, $total, $metodo_pago, $direccion);
+            $stmt->bind_param("idssi", $usuario_id, $total, $metodo_pago, $direccion, $proveedor_id);
             if (!$stmt->execute()) {
                 responder(['success' => false, 'message' => 'No se pudo registrar el pedido.']);
             }
@@ -142,6 +201,20 @@ try {
     }
 
     // Renderizar página (no AJAX)
+    if (empty($_SESSION['carrito'])) {
+        // Renderiza la página normalmente, mostrando el carrito vacío
+        echo $twig->render('compra.twig', [
+            'carrito'       => $_SESSION['carrito'],
+            'total'         => 0,
+            'css_url'       => '../public/assets/css/style-consumidor.css',
+            'session'       => $_SESSION,
+            'mensaje_error' => 'Tu carrito está vacío.',
+            'mensaje_exito' => null,
+            'session_name'  => session_name()
+        ]);
+        exit;
+    }
+
     echo $twig->render('compra.twig', [
         'carrito'       => $_SESSION['carrito'],
         'total'         => $total,
@@ -150,6 +223,7 @@ try {
         'mensaje_error' => $_SESSION['mensaje_error'] ?? null,
         'mensaje_exito' => $_SESSION['mensaje_exito'] ?? null,
     ]);
+    
 
     unset($_SESSION['mensaje_error'], $_SESSION['mensaje_exito']);
 
@@ -158,5 +232,6 @@ try {
         responder(['success' => false, 'message' => 'Ocurrió un error inesperado.']);
     }
     echo "<p>Ocurrió un error inesperado. Por favor, intenta nuevamente más tarde.</p>";
+    echo "<pre>".$e->getMessage()."</pre>";
 }
 ?>

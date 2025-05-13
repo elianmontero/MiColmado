@@ -6,10 +6,10 @@ Agregar Producto - Mi Colmado
 
 {% block enlaces %}
 <ul class="menu">
-    <li><a href="inicio-proveedor.php">Inicio</a></li>
-    <li><a href="agregar-producto.php">Agregar productos</a></li>
-    <li><a href="ver-productos.php">Ver productos</a></li>
-    <li><a href="pedidos-pendientes.php">Pedidos pendientes</a></li>
+    <li><a href="{{ session_url('inicio-proveedor.php') }}">Inicio</a></li>
+    <li><a href="{{ session_url('agregar-producto.php') }}">Agregar productos</a></li>
+    <li><a href="{{ session_url('ver-productos.php') }}">Ver productos</a></li>
+    <li><a href="{{ session_url('pedidos-pendientes.php') }}">Pedidos pendientes</a></li>
     <li><a href="#">Sobre nosotros</a></li>
 </ul>
 {% endblock %}
@@ -76,6 +76,15 @@ Agregar Producto - Mi Colmado
 </div>
 
 <script>
+  // Al inicio del archivo, agrega una función para obtener el session_name de la cookie:
+  function getSessionName() {
+    const match = document.cookie.match(/session_name=([^;]+)/);
+    return match ? match[1] : '';
+  }
+
+  // Al inicio del script
+  const sessionName = "{{ session_name|e('js') }}";
+
   // Mostrar vista previa de la imagen seleccionada
   document.getElementById('imagen').addEventListener('change', function(event) {
     const preview = document.getElementById('preview');
@@ -97,14 +106,13 @@ Agregar Producto - Mi Colmado
   // AJAX del formulario con SweetAlert
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('agregar-producto-form');
+    const sessionName = "{{ session_name|e('js') }}";
 
     form.addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData(form);
-
-        fetch('agregar-producto.php', {
+        fetch('agregar-producto.php?session_name=' + encodeURIComponent(sessionName), {
             method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body: formData
         })
         .then(res => res.json())
@@ -142,7 +150,7 @@ Agregar Producto - Mi Colmado
     document.getElementById('buscar-btn').addEventListener('click', function() {
         const busqueda = document.getElementById('busqueda').value;
 
-        fetch(`buscar-productos.php?query=${encodeURIComponent(busqueda)}`)
+        fetch(`buscar-productos.php?query=${encodeURIComponent(busqueda)}&session_name=${encodeURIComponent(sessionName)}`)
             .then(res => res.json())
             .then(data => {
                 const resultados = document.getElementById('resultados');
@@ -161,40 +169,33 @@ Agregar Producto - Mi Colmado
                     });
 
                     document.querySelectorAll('.btn-agregar').forEach(button => {
-                        button.addEventListener('click', function() {
+                        button.addEventListener('click', async function() {
                             const idProducto = this.dataset.id;
+                            const sessionName = getSessionName();
 
-                            fetch('agregar-producto.php', {
+                            const response = await fetch('agregar-producto.php?session_name=' + encodeURIComponent(sessionName), {
                                 method: 'POST',
                                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                                 body: JSON.stringify({ id_producto: idProducto })
-                            })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.success) {
-                                    Swal.fire({
-                                        title: 'Éxito',
-                                        text: data.message,
-                                        icon: 'success',
-                                        confirmButtonText: 'OK'
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: data.message,
-                                        icon: 'error',
-                                        confirmButtonText: 'OK'
-                                    });
-                                }
-                            })
-                            .catch(() => {
+                            });
+
+                            const data = await response.json();
+
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Éxito',
+                                    text: data.message,
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                });
+                            } else {
                                 Swal.fire({
                                     title: 'Error',
-                                    text: 'Error en la comunicación con el servidor.',
+                                    text: data.message,
                                     icon: 'error',
                                     confirmButtonText: 'OK'
                                 });
-                            });
+                            }
                         });
                     });
                 } else {

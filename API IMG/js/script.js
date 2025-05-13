@@ -8,15 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Búsqueda al presionar Enter
     buscarInput.addEventListener('keydown', event => {
         if (event.key === 'Enter') {
-            event.preventDefault(); // Evitar el comportamiento predeterminado del Enter
-            buscarProductos(); // Llamar a la función de búsqueda
+            event.preventDefault();
+            buscarProductos();
         }
     });
 
-    // Búsqueda al hacer clic
     buscarBtn.addEventListener('click', buscarProductos);
 
-    // Función principal de búsqueda
     async function buscarProductos() {
         const query = buscarInput.value.trim();
         if (!query) {
@@ -55,22 +53,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             spinner.style.display = 'none';
-            resultados.innerHTML = `<p>❌ Error: ${err.message}</p>`;
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: err.message || 'Ocurrió un error inesperado al buscar productos.'
+            });
         }
     }
 
-    // Mostrar resultados en el DOM
     window.mostrarProductos = productos => {
         resultados.innerHTML = '';
         productos.forEach(product => {
             const nombre = product.product_name || 'Sin nombre';
-            const img    = product.image_url    || 'img/no-image.png';
+            const img    = product.image_url    || '/public/assets/img/denied.webp';
 
             const html = `
                 <div class="producto">
                     <div class="producto-info">
                         <h3>${nombre}</h3>
-                        <img src="${img}" width="100" onerror="this.src='img/no-image.png'">
+                        <img src="${img}" width="100" onerror="this.src='/public/assets/img/denied.webp'">
                     </div>
                     <button type="button" onclick="usarProducto('${nombre.replace(/'/g, "\\'")}', '${img}')">
                         Usar este producto
@@ -82,28 +83,62 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Rellena el formulario con nombre e imagen seleccionada
+    function getSessionName() {
+        const match = document.cookie.match(/session_name=([^;]+)/);
+        return match ? match[1] : '';
+    }
+
     window.usarProducto = async (nombre, imagenUrl) => {
-        // Enviar datos directamente al backend
         try {
             const blob = await (await fetch(imagenUrl)).blob();
             const formData = new FormData();
             formData.append('nombre', nombre);
             formData.append('imagen', blob, `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`);
 
-            const response = await fetch('/public/agregar-producto.php', {
+            const sessionName = getSessionName();
+            const response = await fetch('/public/agregar-producto.php?session_name=' + encodeURIComponent(sessionName), {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            const data = await response.json();
+            // Verifica si la respuesta es JSON válida
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Respuesta inesperada del servidor. Intenta iniciar sesión nuevamente.'
+                });
+                return;
+            }
+
             if (data.success) {
-                alert('✅ Producto agregado correctamente a la base de datos.');
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: 'Producto agregado correctamente a la base de datos.'
+                });
             } else {
-                alert(`❌ Error: ${data.message}`);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'No se pudo agregar el producto.'
+                }).then(() => {
+                    if (data.message && data.message.includes('Sesión expirada')) {
+                        window.location.href = '/login.php';
+                    }
+                });
             }
         } catch (error) {
-            console.error('Error al agregar el producto:', error);
-            alert('✅ Producto agregado correctamente.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Ocurrió un error inesperado al agregar el producto.'
+            });
         }
     };
 });
